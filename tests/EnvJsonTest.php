@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Koriym\EnvJson;
 
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
+use Koriym\EnvJson\Exception\JsonFileNotFoundException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use PHPUnit\Framework\TestCase;
 
@@ -56,5 +57,11 @@ class EnvJsonTest extends TestCase
     {
         $this->expectException(SchemaFileNotFoundException::class);
         $this->envJson->load(__DIR__ . '/env/no-schema');
+    }
+
+    public function testLoadDist(): void
+    {
+        $this->envJson->load(__DIR__ . '/env/foo-dist');
+        $this->assertSame('dist-val', getenv('DIST'));
     }
 }
