@@ -13,7 +13,7 @@ Write your env file in JSON, with schema completion instead of copy-paste for en
 If environment variables are already set, they are validated in `env.schema.json`. If not, `env.json` or `env.dist.json` is loaded, validated, and exported to the environment variable value.
 
 ```php
-(new EnvJson)->load(__DIR__);
+(new EnvJson)->export(__DIR__);
 ```
 
 ## env.json

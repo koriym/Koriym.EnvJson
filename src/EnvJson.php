@@ -27,11 +27,20 @@ final class EnvJson
         $this->envLoad = new EnvLoad();
     }
 
-    public function load(string $dir): void
+    /**
+     * @return array<string, string>
+     */
+    public function get(string $dir): array
     {
         $envJson = $dir . '/env.json';
-        $data = $this->getEnvValue($envJson);
-        foreach ($data as $key => $val) { // @phpstan-ignore-line
+
+        return (array) $this->getEnvValue($envJson);
+    }
+
+    public function export(string $dir): void
+    {
+        $data = $this->get($dir);
+        foreach ($data as $key => $val) {
             putenv("{$key}={$val}");
         }
     }

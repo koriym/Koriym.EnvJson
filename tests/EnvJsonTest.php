@@ -28,7 +28,7 @@ class EnvJsonTest extends TestCase
 
     public function testLoadJson(): void
     {
-        $this->envJson->load(__DIR__ . '/env/foo');
+        $this->envJson->export(__DIR__ . '/env/foo');
         $this->assertSame('foo-val', getenv('FOO'));
         $this->assertSame('bar-val', getenv('BAR'));
     }
@@ -38,7 +38,7 @@ class EnvJsonTest extends TestCase
      */
     public function testLoadEnv(): void
     {
-        $this->envJson->load(__DIR__ . '/env/foo-no-json');
+        $this->envJson->export(__DIR__ . '/env/foo-no-json');
         $this->assertSame('foo-val', getenv('FOO'));
         $this->assertSame('bar-val', getenv('BAR'));
     }
@@ -49,18 +49,18 @@ class EnvJsonTest extends TestCase
     public function testError(): void
     {
         $this->expectException(InvalidEnvJsonException::class);
-        $this->envJson->load(__DIR__ . '/env/foo-error');
+        $this->envJson->export(__DIR__ . '/env/foo-error');
     }
 
     public function testNoSchemaFile(): void
     {
         $this->expectException(SchemaFileNotFoundException::class);
-        $this->envJson->load(__DIR__ . '/env/no-schema');
+        $this->envJson->export(__DIR__ . '/env/no-schema');
     }
 
     public function testLoadDist(): void
     {
-        $this->envJson->load(__DIR__ . '/env/foo-dist');
+        $this->envJson->export(__DIR__ . '/env/foo-dist');
         $this->assertSame('dist-val', getenv('DIST'));
     }
 }
