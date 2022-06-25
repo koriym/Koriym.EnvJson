@@ -1,13 +1,50 @@
-# koriym/env-json
+# Koriym.EnvJson
+
+Write your env file in JSON, with schema completion instead of copy-paste for env keys, and validate it with standard Json Schema rules instead of the library's own rules.
 
 ## Installation
 
-    composer install
+    composer require koriym/env-json
 
-## Available Commands
+## Usage
 
-    composer test              // Run unit test
-    composer tests             // Test and quality checks
-    composer cs-fix            // Fix the coding style
-    composer sa                // Run static analysys tools
-    composer run-script --list // List all commands
+`load()` the directory containing the JsonSchema file.
+
+If environment variables are already set, they are validated in `env.schema.json`. If not, `env.json` or `env.dist.json` is loaded, validated, and exported to the environment variable value.
+
+```php
+(new EnvJson)->load(__DIR__);
+```
+
+## env.json
+
+```json
+{
+    "$schema": "./env.schema.json",
+    "foo": "foo-val",
+    "bar": "bar-val"
+}
+```
+
+## env.schema.json
+
+```json
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "FOO", "BAR"
+    ],
+    "properties": {
+        "FOO": {
+            "type": "string",
+            "description": "Foo's value"
+        },
+        "BAR": {
+            "type": "string",
+            "description": "Bar's value",
+            "minLength": 3
+        }
+    }
+}
+```
