@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Koriym\EnvJson;
 
 use Koriym\EnvJson\Exception\JsonFileNotFoundException;
+
 use function assert;
 use function file_exists;
 use function file_get_contents;
@@ -19,6 +20,7 @@ final class JsonLoad
         if (file_exists($json)) {
             return $this->loadJson($json);
         }
+
         $dist = str_replace('.json', '.dist.json', $json);
         if (file_exists($dist)) {
             return $this->loadJson($dist);

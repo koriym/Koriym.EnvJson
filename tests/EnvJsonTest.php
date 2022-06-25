@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Koriym\EnvJson;
 
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
-use Koriym\EnvJson\Exception\JsonFileNotFoundException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use PHPUnit\Framework\TestCase;
 
