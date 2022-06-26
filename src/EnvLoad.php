@@ -13,7 +13,7 @@ use function in_array;
 
 final class EnvLoad
 {
-    public function __invoke(object $schema): object
+    public function __invoke(object $schema): stdClass
     {
         assert(isset($schema->properties));
         $schemaKeys = array_keys((array) $schema->properties);

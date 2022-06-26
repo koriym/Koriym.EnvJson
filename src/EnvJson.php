@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Koriym\EnvJson;
 
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
+use stdClass;
 
 use function array_keys;
 use function assert;
@@ -45,7 +46,7 @@ final class EnvJson
         }
     }
 
-    private function getEnvValue(string $envJson): object
+    private function getEnvValue(string $envJson): stdClass
     {
         $schemaJson = str_replace('.json', '.schema.json', $envJson);
         if (! file_exists($schemaJson)) {
@@ -59,7 +60,7 @@ final class EnvJson
         return $data;
     }
 
-    private function loadData(string $envJson, object $schema): object
+    private function loadData(string $envJson, object $schema): stdClass
     {
         assert(isset($schema->properties));
         $firstPropName = array_keys((array) ($schema->properties))[0];
