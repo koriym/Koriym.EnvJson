@@ -21,8 +21,8 @@ If environment variables are already set, they are validated in `env.schema.json
 ```json
 {
     "$schema": "./env.schema.json",
-    "foo": "foo-val",
-    "bar": "bar-val"
+    "FOO": "foo1",
+    "BAR": "bar1"
 }
 ```
 
@@ -37,12 +37,11 @@ If environment variables are already set, they are validated in `env.schema.json
     ],
     "properties": {
         "FOO": {
-            "type": "string",
-            "description": "Foo's value"
+            "description": "FOO's value"
         },
         "BAR": {
-            "type": "string",
-            "description": "Bar's value",
+            "description": "BAR's value",
+            "examples": ["bar1", "bar-1"],
             "minLength": 3
         }
     }
