@@ -65,7 +65,7 @@ final class EnvJson
         $firstPropName = array_keys((array) ($schema->properties))[0];
         $firstProp = getenv($firstPropName);
         if ($firstProp) {
-            return ($this->envLoad)();
+            return ($this->envLoad)($schema);
         }
 
         return ($this->jsonLoad)($envJson);
