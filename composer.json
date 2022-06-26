@@ -36,7 +36,6 @@
         }
     },
     "scripts": {
-        "setup": "php bin/setup.php",
         "test": "./vendor/bin/phpunit",
         "coverage": "php -dzend_extension=xdebug.so -dxdebug.mode=coverage ./vendor/bin/phpunit --coverage-text --coverage-html=build/coverage",
         "phpdbg": "phpdbg -qrr ./vendor/bin/phpunit --coverage-text --coverage-html ./build/coverage --coverage-clover=coverage.xml",
@@ -63,9 +62,7 @@
             "@sa",
             "@pcov",
             "@metrics"
-        ],
-        "post-install-cmd": "@composer bin all install --ansi",
-        "post-update-cmd": "@composer bin all update --ansi"
+        ]
     },
     "scripts-descriptions": {
         "test": "Run unit tests",
