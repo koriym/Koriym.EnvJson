@@ -22,10 +22,10 @@ Otherwise, `env.json` or `env.dist.json` will be loaded, validated, and exported
 そうでない場合は、`env.json` または `env.dist.json` が読み込まれ、検証され、環境変数の値としてエキスポートされます。
 
 ```php
-(new EnvJson)->export(__DIR__);
+(new EnvJson)->export($dir);
 ```
 
-## env.json
+$dir/env.json
 
 ```json
 {
@@ -35,7 +35,7 @@ Otherwise, `env.json` or `env.dist.json` will be loaded, validated, and exported
 }
 ```
 
-## env.schema.json
+$dir/env.schema.json
 
 ```json
 {
