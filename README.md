@@ -1,6 +1,6 @@
 # Koriym.EnvJson
 
-Write your env file in JSON, with schema completion instead of copy-paste for env keys, and validate it with standard Json Schema rules instead of the library's own rules.
+Create env variable files in JSON. Type it in with completion by schema and validate it using standard [JsonSchema](https://json-schema.org/) rules, not the library's own rules.
 
 ## Installation
 
@@ -8,9 +8,18 @@ Write your env file in JSON, with schema completion instead of copy-paste for en
 
 ## Usage
 
-`load()` the directory containing the JsonSchema file.
+Specify the directory of the `env.schema.json` schema file to `export()`.
 
-If environment variables are already set, they are validated in `env.schema.json`. If not, `env.json` or `env.dist.json` is loaded, validated, and exported to the environment variable value.
+If environment variables are already set, such as in a production environment, they are validated by `env.schema.json` to ensure that they are correct.
+
+Otherwise, `env.json` or `env.dist.json` will be loaded, validated, and exported as environment variable values.
+
+## 使用方法
+
+`env.schema.json`スキーマファイルのディレクトリを指定して`export()`します。
+
+プロダクション環境など環境変数が既に設定されている場合は、その環境変数が正しか`env.schema.json` によってバリデートされます。
+そうでない場合は、`env.json` または `env.dist.json` が読み込まれ、検証され、環境変数の値としてエキスポートされます。
 
 ```php
 (new EnvJson)->export(__DIR__);
@@ -37,12 +46,12 @@ If environment variables are already set, they are validated in `env.schema.json
     ],
     "properties": {
         "FOO": {
-            "description": "FOO's value"
+            "description": "Foo's value",
+            "minLength": 3
         },
         "BAR": {
-            "description": "BAR's value",
-            "examples": ["bar1", "bar-1"],
-            "minLength": 3
+            "description": "Bar's value",
+            "enum": ["bar1", "bar2"]
         }
     }
 }
