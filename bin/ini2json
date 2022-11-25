@@ -1,0 +1,43 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Koriym\EnvJson\Json;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+if (PHP_VERSION_ID >= 80100) {
+    set_error_handler(static function (int $errno, string $errstr, string $errfile) {
+        return $errno === E_DEPRECATED && str_contains($errfile, dirname(__DIR__) . '/vendor');
+    });
+}
+
+init:
+if ($argc !== 2) {
+    echo 'usage: ini2json <ini_file>' . PHP_EOL;
+    exit(1);
+}
+[, $iniFile] = $argv;
+
+if (! file_exists($iniFile)) {
+    echo "$iniFile not exited.";
+    exit(1);
+}
+
+try {
+    $json = new Json($iniFile);
+} catch (JsonException $e) {
+    echo $e;
+    exit(1);
+}
+
+$jsonSchemaPath = $iniFile . '.schema.json';
+$jsonPath = $iniFile . '.json';
+
+file_put_contents($jsonSchemaPath, $json->schema);
+file_put_contents($jsonPath, $json->data);
+
+printf("JSON file [%s] and its schema file [%s] \nwas successfully generated from [%s] ini file.", $jsonPath, $jsonSchemaPath, $iniFile);
+exit(0);
+

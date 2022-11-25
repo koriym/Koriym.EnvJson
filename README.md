@@ -1,6 +1,9 @@
 # Koriym.EnvJson
 
-Create env variable files in JSON. Type it in with completion by schema and validate it using standard [JsonSchema](https://json-schema.org/) rules, not the library's own rules.
+[Japanese](./README.ja.md)
+
+Use JSON instead of INI files to set environment variables.
+Validation by [JSON schema](https://json-schema.org/) is performed on ENV values as well as JSON.
 
 ## Installation
 
@@ -14,12 +17,6 @@ If environment variables are already set, such as in a production environment, t
 
 Otherwise, `env.json` or `env.dist.json` will be loaded, validated, and exported as environment variable values.
 
-## 使用方法
-
-`env.schema.json`スキーマファイルのディレクトリを指定して`export()`します。
-
-プロダクション環境など環境変数が既に設定されている場合は、その環境変数が正しか`env.schema.json` によってバリデートされます。
-そうでない場合は、`env.json` または `env.dist.json` が読み込まれ、検証され、環境変数の値としてエキスポートされます。
 
 ```php
 (new EnvJson)->export($dir);
@@ -55,4 +52,12 @@ $dir/env.schema.json
         }
     }
 }
+```
+
+## Convert ini file
+
+JSON and its JSON schema file are generated from the env(ini) file with `ini2json`.
+
+```
+. /vendor/bin/ini2json .env
 ```
