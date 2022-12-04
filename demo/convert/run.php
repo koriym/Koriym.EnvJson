@@ -9,7 +9,7 @@ passthru(dirname(__DIR__, 2) . '/bin/ini2json ' . __DIR__ . '/.env');
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
-(new EnvJson(__DIR__))->load();
+(new EnvJson())->load(__DIR__);
 
 assert(getenv('FOO') === 'foo1');
 assert(getenv('BAR') === 'bar1');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Koriym\EnvJson;
 
 use JsonSchema\Validator;
+use Koriym\EnvJson\Exception\EnvJsonFileNotFoundException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use stdClass;
 
@@ -19,66 +20,76 @@ use const JSON_THROW_ON_ERROR;
 
 final class EnvJson
 {
-    /** @var stdClass */
-    private $shcema;
+    /** @var Env */
+    private $envFactory;
 
-    /** @var EnvLoad */
-    private $envLoad;
-
-    /** @var array<string, string> */
-    private $envJson = [];
-
-    public function __construct(string $dir)
+    public function __construct()
     {
-        $this->envLoad = new EnvLoad();
-        $schemaJsonFile = sprintf('%s/env.schema.json', $dir);
-        if (! file_exists($schemaJsonFile)) {
-            throw new SchemaFileNotFoundException($schemaJsonFile);
-        }
-
-        $this->shcema = json_decode(file_get_contents($schemaJsonFile)); // @phpstan-ignore-line
-        $envJsonFile = realpath(sprintf('%s/env.json', $dir));
-        $envDistJsonFile = realpath(sprintf('%s/env.dist.json', $dir));
-        if ($envJsonFile) {
-            $this->envJson = json_decode(file_get_contents($envJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
-
-            return;
-        }
-
-        if ($envDistJsonFile) {
-            $this->envJson = json_decode(file_get_contents($envDistJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
-        }
+        $this->envFactory = new Env();
     }
 
-    public function load(): void
+    public function load(string $dir): void
     {
-        if ($this->isValidEnv(new Validator())) {
+        $shcema = $this->getSchema($dir);
+        if ($this->isValidEnv($shcema, new Validator())) {
             return;
         }
 
-        $this->json2env();
+        $json = $this->getEnvJson($dir);
+        $this->putEnv($json);
+
         $validator = new Validator();
-        if ($this->isValidEnv($validator)) {
+        if ($this->isValidEnv($shcema, $validator)) {
             return;
         }
 
         (new ThrowError())($validator);
     }
 
-    private function isValidEnv(Validator $validator): bool
+    private function getEnvJson(string $dir): stdClass
     {
-        $json = ($this->envLoad)($this->shcema);
-        $validator->validate($json, $this->shcema);
+        $envJsonFile = realpath(sprintf('%s/env.json', $dir));
+        $envDistJsonFile = realpath(sprintf('%s/env.dist.json', $dir));
+        if ($envJsonFile) {
+            return json_decode(file_get_contents($envJsonFile), false, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
+        }
+
+        if ($envDistJsonFile) {
+            return json_decode(file_get_contents($envDistJsonFile), false, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
+        }
+
+        throw new EnvJsonFileNotFoundException($dir);
+    }
+
+    private function putEnv(stdClass $json): void
+    {
+        foreach ($json as $key => $val) {
+            if ($key[1] !== '$') {
+                putenv("{$key}={$val}");
+            }
+        }
+    }
+
+    private function isValidEnv(stdClass $shcema, Validator $validator): bool
+    {
+        $env = ($this->envFactory)($shcema);
+        $validator->validate($env, $shcema);
 
         return $validator->isValid();
     }
 
-    private function json2env(): void
+    /**
+     * @param $dir
+     *
+     * @return mixed
+     */
+    public function getSchema($dir)
     {
-        foreach ($this->envJson as $key => $val) {
-            if ($key[0] !== '$') {
-                putenv("{$key}={$val}");
-            }
+        $schemaJsonFile = sprintf('%s/env.schema.json', $dir);
+        if (! file_exists($schemaJsonFile)) {
+            throw new SchemaFileNotFoundException($schemaJsonFile);
         }
+
+        return json_decode(file_get_contents($schemaJsonFile)); // @phpstan-ignore-line
     }
 }
