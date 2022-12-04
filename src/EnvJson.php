@@ -47,22 +47,24 @@ final class EnvJson
         (new ThrowError())($validator);
     }
 
-    private function getEnvJson(string $dir, string $jsonName): stdClass
+    /** @return array<string, string> */
+    private function getEnvJson(string $dir, string $jsonName): array
     {
         $envJsonFile = realpath(sprintf('%s/%s', $dir, $jsonName));
         $envDistJsonFile = realpath(sprintf('%s/%s', $dir, str_replace('.json', '.dist.json', $jsonName)));
         if ($envJsonFile) {
-            return json_decode(file_get_contents($envJsonFile), false, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
+            return json_decode(file_get_contents($envJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
         }
 
         if ($envDistJsonFile) {
-            return json_decode(file_get_contents($envDistJsonFile), false, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
+            return json_decode(file_get_contents($envDistJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
         }
 
         throw new EnvJsonFileNotFoundException($dir);
     }
 
-    private function putEnv(stdClass $json): void
+    /** @param array<string, string> $json */
+    private function putEnv(array $json): void
     {
         foreach ($json as $key => $val) {
             if ($key[1] !== '$') {
@@ -79,7 +81,7 @@ final class EnvJson
         return $validator->isValid();
     }
 
-    public function getSchema(string $dir, string $envJson)
+    public function getSchema(string $dir, string $envJson): stdClass
     {
         $schemaJsonFile = sprintf('%s/%s', $dir, str_replace('.json', '.schema.json', $envJson));
         if (! file_exists($schemaJsonFile)) {
