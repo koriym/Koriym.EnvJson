@@ -9,14 +9,15 @@
 
 ## 使用方法
 
-`env.schema.json`スキーマファイルのディレクトリを指定して`export()`します。
-
-プロダクション環境など環境変数が既に設定されている場合は、その環境変数が正しか`env.schema.json` によってバリデートされます。
-そうでない場合は、`env.json` または `env.dist.json` が読み込まれ、検証され、環境変数の値としてエクスポートされます。
+`env.schema.json`スキーマファイルのディレクトリを指定して`load()`します。
 
 ```php
-(new EnvJson)->export($dir);
+(new EnvJson($dir))->load();
 ```
+
+ 1) 環境変数が既に設定されている場合は、その環境変数が正しか`env.schema.json`によってバリデートされます。
+ 2) そうでない場合は、`env.json` または `env.dist.json` が読み込まれ、`env.schema.json` によって検証され、環境変数の値としてエクスポートされます。
+
 
 $dir/env.json
 
