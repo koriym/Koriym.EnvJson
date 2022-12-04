@@ -9,26 +9,13 @@ use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use PHPUnit\Framework\TestCase;
 
 use function getenv;
+use function putenv;
 
 class EnvJsonTest extends TestCase
 {
-    /** @var EnvJson */
-    protected $envJson;
-
-    protected function setUp(): void
-    {
-        $this->envJson = new EnvJson();
-    }
-
-    public function testIsInstanceOfEnvJson(): void
-    {
-        $actual = $this->envJson;
-        $this->assertInstanceOf(EnvJson::class, $actual);
-    }
-
     public function testLoadJson(): void
     {
-        $this->envJson->export(__DIR__ . '/env/foo');
+        (new EnvJson(__DIR__ . '/env/foo'))->load();
         $this->assertSame('foo-val', getenv('FOO'));
         $this->assertSame('bar-val', getenv('BAR'));
     }
@@ -38,7 +25,7 @@ class EnvJsonTest extends TestCase
      */
     public function testLoadEnv(): void
     {
-        $this->envJson->export(__DIR__ . '/env/foo-no-json');
+        (new EnvJson(__DIR__ . '/env/foo-no-json'))->load();
         $this->assertSame('foo-val', getenv('FOO'));
         $this->assertSame('bar-val', getenv('BAR'));
     }
@@ -48,19 +35,21 @@ class EnvJsonTest extends TestCase
      */
     public function testError(): void
     {
+        putenv('FOO');
+        putenv('BAR');
         $this->expectException(InvalidEnvJsonException::class);
-        $this->envJson->export(__DIR__ . '/env/foo-error');
+        (new EnvJson(__DIR__ . '/env/foo-error'))->load();
     }
 
     public function testNoSchemaFile(): void
     {
         $this->expectException(SchemaFileNotFoundException::class);
-        $this->envJson->export(__DIR__ . '/env/no-schema');
+        (new EnvJson(__DIR__ . '/env/no-schema'));
     }
 
     public function testLoadDist(): void
     {
-        $this->envJson->export(__DIR__ . '/env/foo-dist');
+        (new EnvJson(__DIR__ . '/env/foo-dist'))->load();
         $this->assertSame('dist-val', getenv('DIST'));
     }
 }
