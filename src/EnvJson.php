@@ -15,6 +15,7 @@ use function json_decode;
 use function putenv;
 use function realpath;
 use function sprintf;
+use function str_replace;
 
 use const JSON_THROW_ON_ERROR;
 
@@ -28,15 +29,15 @@ final class EnvJson
         $this->envFactory = new Env();
     }
 
-    public function load(string $dir): void
+    public function load(string $dir, string $json = 'env.json'): void
     {
-        $shcema = $this->getSchema($dir);
+        $shcema = $this->getSchema($dir, $json);
         if ($this->isValidEnv($shcema, new Validator())) {
             return;
         }
 
-        $json = $this->getEnvJson($dir);
-        $this->putEnv($json);
+        $env = $this->getEnvJson($dir, $json);
+        $this->putEnv($env);
 
         $validator = new Validator();
         if ($this->isValidEnv($shcema, $validator)) {
@@ -46,10 +47,10 @@ final class EnvJson
         (new ThrowError())($validator);
     }
 
-    private function getEnvJson(string $dir): stdClass
+    private function getEnvJson(string $dir, string $jsonName): stdClass
     {
-        $envJsonFile = realpath(sprintf('%s/env.json', $dir));
-        $envDistJsonFile = realpath(sprintf('%s/env.dist.json', $dir));
+        $envJsonFile = realpath(sprintf('%s/%s', $dir, $jsonName));
+        $envDistJsonFile = realpath(sprintf('%s/%s', $dir, str_replace('.json', '.dist.json', $jsonName)));
         if ($envJsonFile) {
             return json_decode(file_get_contents($envJsonFile), false, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
         }
@@ -78,14 +79,9 @@ final class EnvJson
         return $validator->isValid();
     }
 
-    /**
-     * @param $dir
-     *
-     * @return mixed
-     */
-    public function getSchema($dir)
+    public function getSchema(string $dir, string $envJson)
     {
-        $schemaJsonFile = sprintf('%s/env.schema.json', $dir);
+        $schemaJsonFile = sprintf('%s/%s', $dir, str_replace('.json', '.schema.json', $envJson));
         if (! file_exists($schemaJsonFile)) {
             throw new SchemaFileNotFoundException($schemaJsonFile);
         }
