@@ -63,6 +63,7 @@ final class EnvJson
         if (PHP_VERSION_ID >= 80100) {
             return set_error_handler(static function (int $errno, string $errstr, string $errfile) {
                 unset($errstr);
+
                 return $errno === E_DEPRECATED && str_contains($errfile, dirname(__DIR__) . '/vendor');
             });
         }
