@@ -5,7 +5,13 @@ declare(strict_types=1);
 
 use Koriym\EnvJson\Json;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
+    if (file_exists($file)) {
+        require $file;
+
+        break;
+    }
+}
 
 if (PHP_VERSION_ID >= 80100) {
     set_error_handler(static function (int $errno, string $errstr, string $errfile) {
@@ -32,8 +38,8 @@ try {
     exit(1);
 }
 
-$jsonSchemaPath = $iniFile . '.schema.json';
-$jsonPath = $iniFile . '.json';
+$jsonSchemaPath = dirname($iniFile) . '/env.schema.json';
+$jsonPath = dirname($iniFile) . '/env.json';
 
 file_put_contents($jsonSchemaPath, $json->schema);
 file_put_contents($jsonPath, $json->data);

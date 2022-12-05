@@ -4,71 +4,114 @@ declare(strict_types=1);
 
 namespace Koriym\EnvJson;
 
+use JsonSchema\Validator;
+use Koriym\EnvJson\Exception\EnvJsonFileNotFoundException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use stdClass;
 
-use function array_keys;
-use function assert;
+use function dirname;
 use function file_exists;
-use function getenv;
+use function file_get_contents;
+use function is_callable;
+use function json_decode;
 use function putenv;
+use function realpath;
+use function set_error_handler;
+use function sprintf;
+use function str_contains;
 use function str_replace;
+
+use const E_DEPRECATED;
+use const JSON_THROW_ON_ERROR;
+use const PHP_VERSION_ID;
 
 final class EnvJson
 {
-    /** @var JsonLoad */
-    private $jsonLoad;
-
-    /** @var EnvLoad */
-    private $envLoad;
+    /** @var Env */
+    private $envFactory;
 
     public function __construct()
     {
-        $this->jsonLoad = new JsonLoad();
-        $this->envLoad = new EnvLoad();
+        $this->envFactory = new Env();
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function get(string $dir): array
+    public function load(string $dir, string $json = 'env.json'): void
     {
-        $envJson = $dir . '/env.json';
+        $handler = $this->suppressPhp81DeprecatedError();
+        $shcema = $this->getSchema($dir, $json);
+        if ($this->isValidEnv($shcema, new Validator())) {
+            goto validated;
+        }
 
-        return (array) $this->getEnvValue($envJson);
-    }
+        $env = $this->getEnv($dir, $json);
+        $this->putEnv($env);
+        $validator = new Validator();
+        if ($this->isValidEnv($shcema, $validator)) {
+            goto validated;
+        }
 
-    public function export(string $dir): void
-    {
-        $data = $this->get($dir);
-        foreach ($data as $key => $val) {
-            putenv("{$key}={$val}");
+        (new ThrowError())($validator);
+
+        validated:
+        if (is_callable($handler)) {
+            set_error_handler($handler);
         }
     }
 
-    private function getEnvValue(string $envJson): stdClass
+    private function suppressPhp81DeprecatedError(): ?callable
     {
-        $schemaJson = str_replace('.json', '.schema.json', $envJson);
-        if (! file_exists($schemaJson)) {
-            throw new SchemaFileNotFoundException($schemaJson);
+        if (PHP_VERSION_ID >= 80100) {
+            return set_error_handler(static function (int $errno, string $errstr, string $errfile) {
+                unset($errstr);
+
+                return $errno === E_DEPRECATED && str_contains($errfile, dirname(__DIR__) . '/vendor');
+            });
         }
 
-        $schema = ($this->jsonLoad)($schemaJson);
-        $data = $this->loadData($envJson, $schema);
-        (new Validate())($data, $schema);
-
-        return $data;
+        return null;
     }
 
-    private function loadData(string $envJson, object $schema): stdClass
+    /** @return array<string, string> */
+    private function getEnv(string $dir, string $jsonName): array
     {
-        assert(isset($schema->properties));
-        $firstPropName = array_keys((array) ($schema->properties))[0];
-        $firstProp = getenv($firstPropName);
-        if ($firstProp) {
-            return ($this->envLoad)($schema);
+        $envJsonFile = realpath(sprintf('%s/%s', $dir, $jsonName));
+        $envDistJsonFile = realpath(sprintf('%s/%s', $dir, str_replace('.json', '.dist.json', $jsonName)));
+        if ($envJsonFile) {
+            return json_decode(file_get_contents($envJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
         }
 
-        return ($this->jsonLoad)($envJson);
+        if ($envDistJsonFile) {
+            return json_decode(file_get_contents($envDistJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
+        }
+
+        throw new EnvJsonFileNotFoundException($dir);
+    }
+
+    /** @param array<string, string> $json */
+    private function putEnv(array $json): void
+    {
+        foreach ($json as $key => $val) {
+            if ($key[1] !== '$') {
+                putenv("{$key}={$val}");
+            }
+        }
+    }
+
+    private function isValidEnv(stdClass $shcema, Validator $validator): bool
+    {
+        $env = ($this->envFactory)($shcema);
+        $validator->validate($env, $shcema);
+
+        return $validator->isValid();
+    }
+
+    public function getSchema(string $dir, string $envJson): stdClass
+    {
+        $schemaJsonFile = sprintf('%s/%s', $dir, str_replace('.json', '.schema.json', $envJson));
+        if (! file_exists($schemaJsonFile)) {
+            throw new SchemaFileNotFoundException($schemaJsonFile);
+        }
+
+        return json_decode(file_get_contents($schemaJsonFile)); // @phpstan-ignore-line
     }
 }

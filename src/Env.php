@@ -11,7 +11,7 @@ use function assert;
 use function getenv;
 use function in_array;
 
-final class EnvLoad
+final class Env
 {
     public function __invoke(object $schema): stdClass
     {

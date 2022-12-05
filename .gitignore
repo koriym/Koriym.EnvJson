@@ -5,3 +5,5 @@
 /phpunit.xml
 /.phpunit.result.cache
 /.phpcs-cache
+/demo/convert/env.json
+/demo/convert/env.schema.json

@@ -11,16 +11,14 @@ Validation by [JSON schema](https://json-schema.org/) is performed on ENV values
 
 ## Usage
 
-Specify the directory of the `env.schema.json` schema file to `export()`.
-
-If environment variables are already set, such as in a production environment, they are validated by `env.schema.json` to ensure that they are correct.
-
-Otherwise, `env.json` or `env.dist.json` will be loaded, validated, and exported as environment variable values.
-
+Specify the directory of the `env.schema.json` schema file to `load()`.
 
 ```php
-(new EnvJson)->export($dir);
+(new EnvJson($dir))->load();
 ```
+
+1) If environment variables are already set, they are validated by `env.schema.json` to see if they are correct.
+2) If not, `env.json` or `env.dist.json` is read, validated by `env.schema.json`, and exported as the environment variable value.
 
 $dir/env.json
 
