@@ -20,7 +20,7 @@ Specify the directory of the `env.schema.json` schema file to `load()`.
 1) If environment variables are already set, they are validated by `env.schema.json` to see if they are correct.
 2) If not, `env.json` or `env.dist.json` is read, validated by `env.schema.json`, and exported as the environment variable value.
 
-$dir/env.json
+`$dir/env.json` or `$dir/env.dist.json`
 
 ```json
 {
@@ -30,7 +30,7 @@ $dir/env.json
 }
 ```
 
-$dir/env.schema.json
+`$dir/env.schema.json`
 
 ```json
 {
