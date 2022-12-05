@@ -33,8 +33,7 @@ final class Json
         ]);
         $this->schema = json_encode(json_decode($schema), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
 
-        $schemaPath = sprintf('./%s.schema.json', basename($iniFile));
-        $dataWithSchema = ['$schema' => $schemaPath] + $ini;
+        $dataWithSchema = ['$schema' => './env.schema.json'] + $ini;
         $this->data = json_encode($dataWithSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
     }
 }

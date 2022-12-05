@@ -27,7 +27,7 @@ if ($argc !== 2) {
 [, $iniFile] = $argv;
 
 if (! file_exists($iniFile)) {
-    echo "$iniFile not exited.";
+    echo "$iniFile not exited." . PHP_EOL;
     exit(1);
 }
 
@@ -39,7 +39,7 @@ try {
 }
 
 $jsonSchemaPath = dirname($iniFile) . '/env.schema.json';
-$jsonPath = dirname($iniFile) . '/env.json';
+$jsonPath = dirname($iniFile) . '/env.dist.json';
 
 file_put_contents($jsonSchemaPath, $json->schema);
 file_put_contents($jsonPath, $json->data);
