@@ -35,7 +35,7 @@ class JsonTest extends TestCase
 }
 ', $json->schema);
         $this->assertSame('{
-    "$schema": "./.env.schema.json",
+    "$schema": "./env.schema.json",
     "FOO": "foo1",
     "BAR": "bar1",
     "API": "http://example.com"
