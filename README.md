@@ -2,8 +2,8 @@
 
 [Japanese](./README.ja.md)
 
-Use JSON instead of INI files to set environment variables.
-Validation by [JSON schema](https://json-schema.org/) is performed on ENV values as well as JSON.
+Use JSON instead of  `.env` file to set environment variables.
+Validation by [JSON schema](https://json-schema.org/) is performed on environment variables as well as JSON.
 
 ## Installation
 
@@ -18,7 +18,7 @@ Specify the directory of the `env.schema.json` schema file to `load()`.
 ```
 
 1) If environment variables are already set, they are validated by `env.schema.json` to see if they are correct.
-2) If not, `env.json` or `env.dist.json` is read, validated by `env.schema.json`, and exported as the environment variable value.
+2) If not, `env.json` or `env.dist.json` is read, validated by `env.schema.json`, and exported as the environment variables.
 
 `$dir/env.json` or `$dir/env.dist.json`
 
@@ -52,9 +52,11 @@ Specify the directory of the `env.schema.json` schema file to `load()`.
 }
 ```
 
+It can provide more appropriate documentation and constraints compared to `.env` files.
+
 ## Convert ini file
 
-JSON and its JSON schema file are generated from the env(ini) file with `ini2json`.
+JSON and its schema file are generated from the `.env` file with `ini2json`.
 
 ```
 . /vendor/bin/ini2json .env
