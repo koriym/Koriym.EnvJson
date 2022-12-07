@@ -1,7 +1,7 @@
 # Koriym.EnvJson
 
-環境変数をセットするためにINIファイルの代わりにJSONを使います。
-[JSONスキーマ](https://json-schema.org/) によるバリデーションは、JSONだけでなくENVの値に対しても行われます。
+`.env`ファイルに変わってJSONで環境変数をセットします。
+[JSONスキーマ](https://json-schema.org/) によるバリデーションは、JSONだけでなく環境変数に対しても行われます。
 
 ## インストール
 
@@ -15,8 +15,8 @@
 (new EnvJson($dir))->load();
 ```
 
- 1) 環境変数が既に設定されている場合は、その環境変数が正しか`env.schema.json`によってバリデートされます。
- 2) そうでない場合は、`env.json` または `env.dist.json` が読み込まれ、`env.schema.json` によって検証され、環境変数の値としてエクスポートされます。
+ 1) 既に環境変数がが設定されている場合は、`env.schema.json`によって検証されます。
+ 2) 検証できない場合は`env.json` または `env.dist.json` の値を検証して環境変数にします。
 
 
 $dir/env.json
@@ -50,6 +50,8 @@ $dir/env.schema.json
     }
 }
 ```
+
+`.env`ファイルと比べて、より適切なドキュメンテーションや制約を表すことができます。
 
 ## iniファイルを変換
 
