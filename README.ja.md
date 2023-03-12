@@ -12,7 +12,7 @@
 `env.schema.json`スキーマファイルのディレクトリを指定して`load()`します。
 
 ```php
-(new EnvJson($dir))->load();
+(new EnvJson())->load($dir);
 ```
 
  1) 既に環境変数がが設定されている場合は、`env.schema.json`によって検証されます。
