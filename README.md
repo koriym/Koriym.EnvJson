@@ -14,7 +14,7 @@ Validation by [JSON schema](https://json-schema.org/) is performed on environmen
 Specify the directory of the `env.schema.json` schema file to `load()`.
 
 ```php
-(new EnvJson($dir))->load();
+(new EnvJson())->load($dir);
 ```
 
 1) If environment variables are already set, they are validated by `env.schema.json` to see if they are correct.
