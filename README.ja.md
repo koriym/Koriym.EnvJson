@@ -15,7 +15,7 @@
 (new EnvJson())->load($dir);
 ```
 
- 1) 既に環境変数がが設定されている場合は、`env.schema.json`によって検証されます。
+ 1) 既に環境変数が設定されている場合は、`env.schema.json`によって検証されます。
  2) 検証できない場合は`env.json` または `env.dist.json` の値を検証して環境変数にします。
 
 
