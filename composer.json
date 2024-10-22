@@ -11,7 +11,7 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
-        "justinrainbow/json-schema": "^5.2",
+        "justinrainbow/json-schema": "^6.0",
         "evaisse/php-json-schema-generator": "^2.1"
     },
     "require-dev": {
