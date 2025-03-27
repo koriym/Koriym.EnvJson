@@ -6,13 +6,15 @@ namespace Koriym\EnvJson;
 
 use PHPUnit\Framework\TestCase;
 
+use function str_replace;
+
 class JsonTest extends TestCase
 {
     public function testJson(): void
     {
         $envFile = __DIR__ . '/Fake/.env';
         $json = new Json($envFile);
-        $this->assertJsonStringEqualsJsonString('{
+        $this->assertSameNormalized('{
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "required": [
@@ -41,5 +43,11 @@ class JsonTest extends TestCase
     "API": "http://example.com"
 }
 ', $json->data);
+    }
+
+    private function assertSameNormalized(string $expected, string $actual, string $message = '')
+    {
+        $normalize = static fn ($s) => str_replace(["\r\n", "\r"], "\n", $s);
+        $this->assertSame($normalize($expected), $normalize($actual), $message);
     }
 }
