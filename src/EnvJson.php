@@ -30,6 +30,13 @@ final class EnvJson
     /** @var Env */
     private $envFactory;
 
+    /**
+     * Registry to track environment variables set by this library
+     *
+     * @var array<string, string>
+     */
+    private static $envRegistry = [];
+
     public function __construct()
     {
         $this->envFactory = new Env();
@@ -38,20 +45,19 @@ final class EnvJson
     public function load(string $dir, string $json = 'env.json'): void
     {
         $handler = $this->suppressPhp81DeprecatedError();
-        $shcema = $this->getSchema($dir, $json);
-        if ($this->isValidEnv($shcema, new Validator())) {
+        $schema = $this->getSchema($dir, $json);
+        if ($this->isValidEnv($schema, new Validator())) {
             goto validated;
         }
 
         $env = $this->getEnv($dir, $json);
         $this->putEnv($env);
         $validator = new Validator();
-        if ($this->isValidEnv($shcema, $validator)) {
+        if ($this->isValidEnv($schema, $validator)) {
             goto validated;
         }
 
         (new ThrowError())($validator);
-
         validated:
         if (is_callable($handler)) {
             set_error_handler($handler);
@@ -87,20 +93,59 @@ final class EnvJson
         throw new EnvJsonFileNotFoundException($dir);
     }
 
-    /** @param array<string, string> $json */
+    /**
+     * @param array<string, string> $json
+     *
+     * Sets environment variables and tracks them in the internal registry
+     */
     private function putEnv(array $json): void
     {
         foreach ($json as $key => $val) {
             if ($key[1] !== '$') {
                 putenv("{$key}={$val}");
+                $_ENV[$key] = $val;
+
+                // Track this environment variable in our registry
+                self::$envRegistry[$key] = $val;
             }
         }
     }
 
-    private function isValidEnv(stdClass $shcema, Validator $validator): bool
+    /**
+     * Creates an object with all environment variables tracked by this library
+     */
+    private function getRegistryAsObject(): stdClass
     {
-        $env = ($this->envFactory)($shcema);
-        $validator->validate($env, $shcema);
+        $data = new stdClass();
+        foreach (self::$envRegistry as $key => $val) {
+            $data->{$key} = $val;
+        }
+
+        return $data;
+    }
+
+    /** @return array<string, string> */
+    public function getAllEnv(): array
+    {
+        return self::$envRegistry;
+    }
+
+    private function isValidEnv(stdClass $schema, Validator $validator): bool
+    {
+        // Option 1: Continue using Env class but with added fallback
+        $env = ($this->envFactory)($schema);
+
+        // Check if environment variables are missing and add from registry
+        foreach (self::$envRegistry as $key => $val) {
+            if (! isset($env->{$key})) {
+                $env->{$key} = $val;
+            }
+        }
+
+        // Alternatively, use Option 2: Use only registry for validation
+        // $env = $this->getRegistryAsObject();
+
+        $validator->validate($env, $schema);
 
         return $validator->isValid();
     }
