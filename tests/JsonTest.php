@@ -36,7 +36,7 @@ class JsonTest extends TestCase
     }
 }
 ', $json->schema);
-        $this->assertSame('{
+        $this->assertSameNormalized('{
     "$schema": "./env.schema.json",
     "FOO": "foo1",
     "BAR": "bar1",
