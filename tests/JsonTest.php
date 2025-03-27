@@ -12,7 +12,7 @@ class JsonTest extends TestCase
     {
         $envFile = __DIR__ . '/Fake/.env';
         $json = new Json($envFile);
-        $this->assertSame('{
+        $this->assertJsonStringEqualsJsonString('{
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "required": [
