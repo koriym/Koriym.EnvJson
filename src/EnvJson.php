@@ -111,28 +111,8 @@ final class EnvJson
         }
     }
 
-    /**
-     * Creates an object with all environment variables tracked by this library
-     */
-    private function getRegistryAsObject(): stdClass
-    {
-        $data = new stdClass();
-        foreach (self::$envRegistry as $key => $val) {
-            $data->{$key} = $val;
-        }
-
-        return $data;
-    }
-
-    /** @return array<string, string> */
-    public function getAllEnv(): array
-    {
-        return self::$envRegistry;
-    }
-
     private function isValidEnv(stdClass $schema, Validator $validator): bool
     {
-        // Option 1: Continue using Env class but with added fallback
         $env = ($this->envFactory)($schema);
 
         // Check if environment variables are missing and add from registry
@@ -141,9 +121,6 @@ final class EnvJson
                 $env->{$key} = $val;
             }
         }
-
-        // Alternatively, use Option 2: Use only registry for validation
-        // $env = $this->getRegistryAsObject();
 
         $validator->validate($env, $schema);
 
