@@ -12,6 +12,7 @@ use stdClass;
 use function dirname;
 use function file_exists;
 use function file_get_contents;
+use function getenv;
 use function is_callable;
 use function json_decode;
 use function putenv;
@@ -29,13 +30,6 @@ final class EnvJson
 {
     /** @var Env */
     private $envFactory;
-
-    /**
-     * Registry to track environment variables set by this library
-     *
-     * @var array<string, string>
-     */
-    private static $envRegistry = [];
 
     public function __construct()
     {
@@ -93,34 +87,45 @@ final class EnvJson
         throw new EnvJsonFileNotFoundException($dir);
     }
 
-    /**
-     * @param array<string, string> $json
-     *
-     * Sets environment variables and tracks them in the internal registry
-     */
+    /** @param array<string, string> $json */
     private function putEnv(array $json): void
     {
         foreach ($json as $key => $val) {
             if ($key[1] !== '$') {
                 putenv("{$key}={$val}");
                 $_ENV[$key] = $val;
-
-                // Track this environment variable in our registry
-                self::$envRegistry[$key] = $val;
             }
         }
     }
 
-    private function isValidEnv(stdClass $schema, Validator $validator): bool
+    /**
+     * Collects environment variables based on schema properties
+     * This replaces the Env class approach with direct getenv() calls
+     */
+    private function collectEnvFromSchema(stdClass $schema): stdClass
     {
-        $env = ($this->envFactory)($schema);
+        $data = new stdClass();
 
-        // Check if environment variables are missing and add from registry
-        foreach (self::$envRegistry as $key => $val) {
-            if (! isset($env->{$key})) {
-                $env->{$key} = $val;
+        // Make sure schema has properties
+        if (! isset($schema->properties)) {
+            return $data;
+        }
+
+        // Get each property from the environment using getenv()
+        foreach ($schema->properties as $key => $property) {
+            $value = getenv($key);
+            if ($value !== false) {
+                $data->{$key} = $value;
             }
         }
+
+        return $data;
+    }
+
+    private function isValidEnv(stdClass $schema, Validator $validator): bool
+    {
+        // Use the schema-based approach instead of Env class
+        $env = $this->collectEnvFromSchema($schema);
 
         $validator->validate($env, $schema);
 
