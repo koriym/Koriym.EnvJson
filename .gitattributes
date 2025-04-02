@@ -1,4 +1,5 @@
 # https://php.watch/articles/composer-gitattributes
+* text=auto eol=lf
 
 # Exclude build/test files from archive
 /tests            export-ignore
