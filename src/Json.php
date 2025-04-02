@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Koriym\EnvJson;
 
 use JSONSchemaGenerator\Generator;
-
 use Koriym\EnvJson\Exception\RuntimeException;
+
 use function basename;
 use function json_decode;
 use function json_encode;
