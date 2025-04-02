@@ -7,6 +7,7 @@ namespace Koriym\EnvJson;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SplFileInfo;
 
 use function bin2hex;
 use function chdir;
@@ -35,12 +36,20 @@ class BinEnvJsonTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->scriptPath = realpath(__DIR__ . '/../bin/envjson');
-        if ($this->scriptPath === false) {
+        $scriptPath = realpath(__DIR__ . '/../bin/envjson');
+        if ($scriptPath === false) {
             $this->fail('bin/envjson script not found.');
         }
 
-        $this->originalDir = getcwd();
+        $this->scriptPath = $scriptPath;
+
+        $originalDir = getcwd();
+        if ($originalDir === false) {
+            $this->fail('Could not get current working directory.');
+        }
+
+        $this->originalDir = $originalDir;
+
         $this->tempDir = sys_get_temp_dir() . '/envjson_test_' . bin2hex(random_bytes(5));
         if (! mkdir($this->tempDir, 0777, true) && ! is_dir($this->tempDir)) {
             $this->fail(sprintf('Directory "%s" was not created', $this->tempDir));
@@ -71,17 +80,25 @@ class BinEnvJsonTest extends TestCase
             new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST,
         );
+        /** @var SplFileInfo $item */
         foreach ($items as $item) {
+            $realPath = $item->getRealPath();
+            if ($realPath === false) {
+                // Handle error or skip if path is invalid
+                continue;
+            }
+
             if ($item->isDir() && ! $item->isLink()) {
-                rmdir($item->getRealPath());
+                rmdir($realPath);
             } else {
-                unlink($item->getRealPath());
+                unlink($realPath);
             }
         }
 
         rmdir($dir);
     }
 
+    /** @return array{output: string, code: int} */
     private function executeScript(string $options = ''): array
     {
         $command = sprintf('php %s %s 2>&1', escapeshellarg($this->scriptPath), $options);
@@ -217,7 +234,6 @@ EOT;
         $this->assertSame($expectedOutput, $result['output']);
     }
 
-    // Renamed from testFileNotFoundError to be more specific
     public function testSchemaFileNotFoundError(): void
     {
          // Test with a non-existent directory (schema will be missing)
@@ -228,7 +244,6 @@ EOT;
         $this->assertStringContainsString('non_existent_dir/env.schema.json', $result['output']); // Check for the problematic path
     }
 
-    // New test case for missing env file but existing schema
     public function testEnvFileNotFoundButSchemaExists(): void
     {
         // Create only the schema file in the temp directory

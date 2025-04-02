@@ -91,11 +91,11 @@ final class EnvJson
     {
         $envJsonFile = realpath(sprintf('%s/%s', $dir, $jsonName));
         $envDistJsonFile = realpath(sprintf('%s/%s', $dir, str_replace('.json', '.dist.json', $jsonName)));
-        if ($envJsonFile) {
+        if ($envJsonFile !== false) {
             return json_decode(file_get_contents($envJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
         }
 
-        if ($envDistJsonFile) {
+        if ($envDistJsonFile !== false) {
             return json_decode(file_get_contents($envDistJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
         }
 
