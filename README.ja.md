@@ -12,7 +12,11 @@
 `env.schema.json`スキーマファイルのディレクトリを指定して`load()`します。
 
 ```php
-(new EnvJson())->load($dir);
+$env = (new EnvJson())->load($dir);
+assert($env instanceof stdClass);
+// 環境変数はプロパティとしてアクセス、またはgetenv()で取得できます。
+assert($env->FOO === 'foo1');
+assert(getenv('FOO') === 'foo1');
 ```
 
  1) 既に環境変数が設定されている場合は、`env.schema.json`によって検証されます。
