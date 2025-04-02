@@ -62,6 +62,34 @@ It can provide more appropriate documentation and constraints compared to `.env`
 
 JSON and its schema file are generated from the `.env` file with `ini2json`.
 
+```bash
+bin/ini2json .env
 ```
-. /vendor/bin/ini2json .env
+
+## Command Line Tool: envjson
+
+Loads environment variables from `env.json` (or `env.dist.json`) validated by `env.schema.json`.
+
+**Usage:**
+
+```bash
+# Load variables into current shell
+source <(bin/envjson)
+
+# Specify directory containing env files
+source <(bin/envjson -d ./config)
+
+# Output in FPM format
+bin/envjson -d ./config -o fpm > .env.fpm
+
+# Output in INI format
+bin/envjson -d ./config -o ini > env.ini
 ```
+
+**Options:**
+  -d --dir=DIR     Directory containing env.json and env.schema.json files (default: current directory)
+  -f --file=FILE   JSON file name to load (default: env.json)
+  -o --output=FMT  Output format: shell fpm ini (default: shell)
+  -v --verbose     Show detailed messages
+  -q --quiet       Suppress all warning messages
+  -h --help        Display this help message

@@ -61,6 +61,34 @@ $dir/env.schema.json
 
 `ini2json`でenv(ini)ファイルからJSONとそのJSONスキーマファイルが生成されます。
 
+```bash
+bin/ini2json .env
 ```
-./vendor/bin/ini2json .env
+
+## コマンドラインツール: envjson
+
+`env.schema.json` によって検証された `env.json` (または `env.dist.json`) から環境変数を読み込みます。
+
+**使用方法:**
+
+```bash
+# 現在のシェルに変数を読み込む
+source <(bin/envjson)
+
+# envファイルが含まれるディレクトリを指定
+source <(bin/envjson -d ./config)
+
+# FPM形式で出力
+bin/envjson -d ./config -o fpm > .env.fpm
+
+# INI形式で出力
+bin/envjson -d ./config -o ini > env.ini
 ```
+
+**オプション:**
+  -d --dir=DIR     env.json と env.schema.json ファイルが含まれるディレクトリ (デフォルト: カレントディレクトリ)
+  -f --file=FILE   読み込むJSONファイル名 (デフォルト: env.json)
+  -o --output=FMT  出力形式: shell fpm ini (デフォルト: shell)
+  -v --verbose     詳細メッセージを表示
+  -q --quiet       全ての警告メッセージを抑制
+  -h --help        このヘルプメッセージを表示

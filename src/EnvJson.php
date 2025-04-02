@@ -134,7 +134,9 @@ final class EnvJson
 
     public function getSchema(string $dir, string $envJson): stdClass
     {
-        $schemaJsonFile = sprintf('%s/%s', $dir, str_replace('.json', '.schema.json', $envJson));
+        // Always look for 'env.schema.json', regardless of the $envJson filename
+        unset($envJson); // Indicate $envJson is not used for schema path determination
+        $schemaJsonFile = sprintf('%s/env.schema.json', $dir);
         if (! file_exists($schemaJsonFile)) {
             throw new SchemaFileNotFoundException($schemaJsonFile);
         }
