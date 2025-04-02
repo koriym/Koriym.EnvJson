@@ -28,13 +28,10 @@ use const PHP_VERSION_ID;
 
 final class EnvJson
 {
-    /** @var Env */
-    private $envFactory;
     private Validator $validator;
 
     public function __construct()
     {
-        $this->envFactory = new Env();
         $this->validator = new Validator();
     }
 
@@ -124,6 +121,7 @@ final class EnvJson
 
         // Get each property from the environment using getenv()
         foreach ($schema->properties as $key => $property) {
+            unset($property);
             $value = getenv($key);
             if ($value !== false) {
                 $data->{$key} = $value;
@@ -131,16 +129,6 @@ final class EnvJson
         }
 
         return $data;
-    }
-
-    private function isValidEnv(stdClass $schema, Validator $validator): bool
-    {
-        // Use the schema-based approach instead of Env class
-        $env = $this->collectEnvFromSchema($schema);
-
-        $validator->validate($env, $schema);
-
-        return $validator->isValid();
     }
 
     public function getSchema(string $dir, string $envJson): stdClass

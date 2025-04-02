@@ -17,5 +17,7 @@ class InvalidEnvJsonException extends RuntimeException
         foreach ($validator->getErrors() as $error) {
             $msg .= sprintf('[%s] %s; ', $error['property'], $error['message']);
         }
+
+        parent::__construct($msg);
     }
 }
