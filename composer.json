@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "php": "^7.4 || ^8.0",
+        "php": "^8.1",
         "ext-json": "*",
         "justinrainbow/json-schema": "^6.4",
         "evaisse/php-json-schema-generator": "^v2.1",

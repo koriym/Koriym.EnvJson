@@ -30,7 +30,6 @@ use function str_replace;
 
 use const E_DEPRECATED;
 use const JSON_THROW_ON_ERROR;
-use const PHP_VERSION_ID;
 
 final class EnvJson
 {
@@ -84,15 +83,11 @@ final class EnvJson
 
     private function suppressPhp81DeprecatedError(): ?callable
     {
-        if (PHP_VERSION_ID >= 80100) {
-            return set_error_handler(static function (int $errno, string $errstr, string $errfile) {
-                unset($errstr);
+        return set_error_handler(static function (int $errno, string $errstr, string $errfile) {
+            unset($errstr);
 
-                return $errno === E_DEPRECATED && str_contains($errfile, dirname(__DIR__) . '/vendor');
-            });
-        }
-
-        return null; // @codeCoverageIgnore
+            return $errno === E_DEPRECATED && str_contains($errfile, dirname(__DIR__) . '/vendor');
+        });
     }
 
     /** @return array<string, mixed> */
