@@ -77,7 +77,7 @@ final class EnvJson
             });
         }
 
-        return null;
+        return null; // @codeCoverageIgnore
     }
 
     /** @return array<string, string> */
