@@ -30,7 +30,7 @@ final class Json
     {
         $ini = parse_ini_file($iniFile);
         if ($ini === false) {
-            throw new Exception\RuntimeException("Failed to parse INI file: {$iniFile}");
+            throw new RuntimeException("Failed to parse INI file: {$iniFile}"); // @codeCoverageIgnore
         }
 
         // JSON_THROW_ON_ERROR makes json_encode throw on error, so no need to check for false here
@@ -44,12 +44,12 @@ final class Json
         $decodedSchema = json_decode($schema);
         /** @psalm-suppress ImpureFunctionCall */
         if ($decodedSchema === null && json_last_error() !== JSON_ERROR_NONE) {
-             throw new RuntimeException('Failed to decode generated schema JSON'); // @CodeCoverageIgnore
+             RuntimeException('Failed to decode generated schema JSON'); // @codeCoverageIgnore
         }
 
         $encodedSchema = json_encode($decodedSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         if ($encodedSchema === false) {
-            throw new Exception\RuntimeException('Failed to encode schema JSON');
+            throw new RuntimeException('Failed to encode schema JSON'); // @codeCoverageIgnore
         }
 
         $this->schema = $encodedSchema . PHP_EOL;
@@ -57,7 +57,7 @@ final class Json
         $dataWithSchema = ['$schema' => './env.schema.json'] + $ini;
         $encodedData = json_encode($dataWithSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         if ($encodedData === false) {
-            throw new Exception\RuntimeException('Failed to encode data JSON');
+            throw new RuntimeException('Failed to encode data JSON'); // @codeCoverageIgnore
         }
 
         $this->data = $encodedData . PHP_EOL;
