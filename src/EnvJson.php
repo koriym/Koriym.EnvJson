@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Koriym\EnvJson;
 
 use JsonSchema\Validator;
-use Koriym\EnvJson\Exception\EnvJsonFileNotFoundException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
-use Koriym\EnvJson\Exception\InvalidJsonSchemaException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use stdClass;
 
@@ -64,6 +62,14 @@ final class EnvJson
             return $pureEnvByFile;
         }
 
+        // If fileEnv was empty (no file found) and existing env was not valid, return empty object
+        if (empty($fileEnv)) {
+            set_error_handler($handler);
+
+            return new stdClass();
+        }
+
+        // Otherwise, if file existed but was invalid according to schema, throw exception
         throw new InvalidEnvJsonException($this->validator);
     }
 
@@ -93,7 +99,8 @@ final class EnvJson
             return json_decode(file_get_contents($envDistJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
         }
 
-        throw new EnvJsonFileNotFoundException($dir);
+        // If neither file exists, return empty array instead of throwing
+        return [];
     }
 
     /** @param array<string, string> $json */
@@ -115,9 +122,9 @@ final class EnvJson
     {
         $data = new stdClass();
 
-        // Make sure schema has properties
+        // If schema has no properties defined, return empty object
         if (! isset($schema->properties)) {
-            throw new InvalidJsonSchemaException(); // @codeCoverageIgnore
+            return $data;
         }
 
         // Get each property from the environment using getenv()

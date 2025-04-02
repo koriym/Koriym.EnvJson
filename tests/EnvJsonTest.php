@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Koriym\EnvJson;
 
-use Koriym\EnvJson\Exception\EnvJsonFileNotFoundException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 use function getenv;
 use function putenv;
@@ -32,8 +32,11 @@ class EnvJsonTest extends TestCase
     /** @depends testLoadJson */
     public function testEnvFileNotFoundError(): void
     {
-        $this->expectException(EnvJsonFileNotFoundException::class);
-        (new EnvJson())->load(__DIR__ . '/env/file-not-found-error');
+        // EnvJson::load now returns empty stdClass when env file not found
+        // instead of throwing EnvJsonFileNotFoundException
+        $result = (new EnvJson())->load(__DIR__ . '/env/file-not-found-error');
+        $this->assertInstanceOf(stdClass::class, $result);
+        $this->assertEmpty((array) $result); // Check if the object has no properties
     }
 
     /** @depends testLoadJson */
