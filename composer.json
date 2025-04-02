@@ -12,7 +12,9 @@
         "php": "^7.4 || ^8.0",
         "ext-json": "*",
         "justinrainbow/json-schema": "^6.4",
-        "evaisse/php-json-schema-generator": "^v2.1"
+        "evaisse/php-json-schema-generator": "^v2.1",
+        "amphp/amp": "^v3.1",
+        "marc-mabe/php-enum": "^v4.7.1"
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.8.2",
