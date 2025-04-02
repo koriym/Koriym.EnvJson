@@ -6,6 +6,6 @@ namespace Koriym\EnvJson\Exception;
 
 use RuntimeException;
 
-class EnvJsonFileNotFoundException extends RuntimeException
+final class EnvJsonFileNotFoundException extends RuntimeException
 {
 }

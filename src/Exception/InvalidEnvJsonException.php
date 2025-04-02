@@ -9,7 +9,7 @@ use RuntimeException;
 
 use function sprintf;
 
-class InvalidEnvJsonException extends RuntimeException
+final class InvalidEnvJsonException extends RuntimeException
 {
     public function __construct(Validator $validator)
     {

@@ -6,6 +6,6 @@ namespace Koriym\EnvJson\Exception;
 
 use RuntimeException;
 
-class SchemaFileNotFoundException extends RuntimeException
+final class SchemaFileNotFoundException extends RuntimeException
 {
 }
