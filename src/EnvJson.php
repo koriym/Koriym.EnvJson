@@ -6,6 +6,7 @@ namespace Koriym\EnvJson;
 
 use JsonSchema\Validator;
 use Koriym\EnvJson\Exception\EnvJsonFileNotFoundException;
+use Koriym\EnvJson\Exception\InvalidEnvJsonException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use stdClass;
 
@@ -13,7 +14,6 @@ use function dirname;
 use function file_exists;
 use function file_get_contents;
 use function getenv;
-use function is_callable;
 use function json_decode;
 use function putenv;
 use function realpath;
@@ -30,32 +30,43 @@ final class EnvJson
 {
     /** @var Env */
     private $envFactory;
+    private Validator $validator;
 
     public function __construct()
     {
         $this->envFactory = new Env();
+        $this->validator = new Validator();
     }
 
-    public function load(string $dir, string $json = 'env.json'): void
+    public function load(string $dir, string $json = 'env.json'): stdClass
     {
         $handler = $this->suppressPhp81DeprecatedError();
         $schema = $this->getSchema($dir, $json);
-        if ($this->isValidEnv($schema, new Validator())) {
-            goto validated;
-        }
 
-        $env = $this->getEnv($dir, $json);
-        $this->putEnv($env);
-        $validator = new Validator();
-        if ($this->isValidEnv($schema, $validator)) {
-            goto validated;
-        }
+        $pureEnv = $this->collectEnvFromSchema($schema);
+        $this->validator->validate($pureEnv, $schema);
+        $isEnvValid = $this->validator->isValid();
 
-        (new ThrowError())($validator);
-        validated:
-        if (is_callable($handler)) {
+        if ($isEnvValid) {
             set_error_handler($handler);
+
+            return $pureEnv;
         }
+
+        $fileEnv = $this->getEnv($dir, $json);
+        $this->putEnv($fileEnv);
+        $pureEnvByFile = $this->collectEnvFromSchema($schema);
+        $this->validator->validate($pureEnvByFile, $schema);
+
+        $isPureEnvByFileValid = $this->validator->isValid();
+
+        if ($isPureEnvByFileValid) {
+            set_error_handler($handler);
+
+            return $pureEnvByFile;
+        }
+
+        throw new InvalidEnvJsonException($this->validator);
     }
 
     private function suppressPhp81DeprecatedError(): ?callable
