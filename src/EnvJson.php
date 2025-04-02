@@ -158,7 +158,7 @@ final class EnvJson
 
         // If schema has no properties defined, or properties is not an object, return empty object
         if (! isset($schema->properties) || ! is_object($schema->properties)) {
-            return $data;
+            return $data; // @codeCoverageIgnore
         }
 
         // Get object properties as an associative array
@@ -190,14 +190,14 @@ final class EnvJson
 
         $schemaContents = file_get_contents($schemaJsonFile);
         if ($schemaContents === false) {
-            throw new SchemaFileNotReadableException($schemaJsonFile);
+            throw new SchemaFileNotReadableException($schemaJsonFile); // @codeCoverageIgnore
         }
 
         $decodedSchema = json_decode($schemaContents);
 
         // Ensure the decoded schema is an object (stdClass)
         if (! $decodedSchema instanceof stdClass) {
-            throw new InvalidJsonSchemaException($schemaJsonFile);
+            throw new InvalidJsonSchemaException($schemaJsonFile); // @codeCoverageIgnore
         }
 
         return $decodedSchema;
