@@ -47,7 +47,7 @@ class JsonTest extends TestCase
 
     private function assertSameNormalized(string $expected, string $actual, string $message = ''): void
     {
-        $normalize = static fn ($s) => str_replace(["\r\n", "\r"], "\n", $s);
+        $normalize = static fn (string $s): string => str_replace(["\r\n", "\r"], "\n", $s);
         $this->assertSame($normalize($expected), $normalize($actual), $message);
     }
 }

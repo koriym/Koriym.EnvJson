@@ -6,13 +6,20 @@ namespace Koriym\EnvJson;
 
 use JsonSchema\Validator;
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
+use Koriym\EnvJson\Exception\InvalidJsonSchemaException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
+use Koriym\EnvJson\Exception\SchemaFileNotReadableException;
 use stdClass;
 
+use function assert;
 use function dirname;
 use function file_exists;
 use function file_get_contents;
+use function get_object_vars;
 use function getenv;
+use function is_array;
+use function is_object;
+use function is_scalar;
 use function json_decode;
 use function putenv;
 use function realpath;
@@ -45,6 +52,7 @@ final class EnvJson
 
         if ($isEnvValid) {
             set_error_handler($handler);
+            assert($pureEnv instanceof stdClass); // Add assertion
 
             return $pureEnv;
         }
@@ -58,6 +66,7 @@ final class EnvJson
 
         if ($isPureEnvByFileValid) {
             set_error_handler($handler);
+            assert($pureEnvByFile instanceof stdClass);
 
             return $pureEnvByFile;
         }
@@ -86,57 +95,92 @@ final class EnvJson
         return null; // @codeCoverageIgnore
     }
 
-    /** @return array<string, string> */
+    /** @return array<string, mixed> */
     private function getEnv(string $dir, string $jsonName): array
     {
         $envJsonFile = realpath(sprintf('%s/%s', $dir, $jsonName));
         $envDistJsonFile = realpath(sprintf('%s/%s', $dir, str_replace('.json', '.dist.json', $jsonName)));
+
         if ($envJsonFile !== false) {
-            return json_decode(file_get_contents($envJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
+            $contents = file_get_contents($envJsonFile);
+            if ($contents === false) {
+                throw new Exception\RuntimeException("Failed to read env file: {$envJsonFile}");
+            }
+
+            $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+            if (! is_array($decoded)) {
+                throw new Exception\RuntimeException("Invalid JSON format in env file: {$envJsonFile}. Expected array.");
+            }
+
+            // Although we expect array<string, string>, PHPStan might still complain.
+            // We rely on schema validation later to enforce types.
+            /** @var array<string, mixed> $decoded */ // Acknowledge values can be mixed initially
+            return $decoded; // Return the array
         }
 
         if ($envDistJsonFile !== false) {
-            return json_decode(file_get_contents($envDistJsonFile), true, 512, JSON_THROW_ON_ERROR); // @phpstan-ignore-line
+            $contents = file_get_contents($envDistJsonFile);
+            if ($contents === false) {
+                throw new Exception\RuntimeException("Failed to read env file: {$envDistJsonFile}");
+            }
+
+            $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+            if (! is_array($decoded)) {
+                throw new Exception\RuntimeException("Invalid JSON format in env file: {$envDistJsonFile}. Expected array.");
+            }
+
+            // Although we expect array<string, string>, PHPStan might still complain.
+            // We rely on schema validation later to enforce types.
+             /** @var array<string, mixed> $decoded */ // Acknowledge values can be mixed initially
+            return $decoded; // Return the array
         }
 
-        // If neither file exists, return empty array instead of throwing
+        // If neither file exists, return empty array
         return [];
     }
 
-    /** @param array<string, string> $json */
+    /** @param array<string, mixed> $json */
     private function putEnv(array $json): void
     {
         foreach ($json as $key => $val) {
-            if ($key[1] !== '$') {
-                putenv("{$key}={$val}");
-                $_ENV[$key] = $val;
+            // Ensure value is scalar before putting env (key is guaranteed string)
+            if ($key[1] !== '$' && is_scalar($val)) {
+                $stringValue = (string) $val;
+                putenv("{$key}={$stringValue}");
+                $_ENV[$key] = $stringValue;
             }
         }
     }
 
     /**
-     * Collects environment variables based on schema properties
-     * This replaces the Env class approach with direct getenv() calls
+     * Collects environment variables based on schema properties.
+     * This replaces the Env class approach with direct getenv() calls.
      */
     private function collectEnvFromSchema(stdClass $schema): stdClass
     {
         $data = new stdClass();
 
-        // If schema has no properties defined, return empty object
-        if (! isset($schema->properties)) {
+        // If schema has no properties defined, or properties is not an object, return empty object
+        if (! isset($schema->properties) || ! is_object($schema->properties)) {
             return $data;
         }
 
+        // Get object properties as an associative array
+        $properties = get_object_vars($schema->properties);
+
         // Get each property from the environment using getenv()
-        foreach ($schema->properties as $key => $property) {
-            unset($property);
+        /** @var mixed $property */ // Keep $property for potential future use if needed, but mark as mixed
+        foreach ($properties as $key => $property) {
+            unset($property); // Explicitly unset if not used
+            // Removed unnecessary @var string $key
             $value = getenv($key);
             if ($value !== false) {
+                // Dynamically set property on stdClass
                 $data->{$key} = $value;
             }
         }
 
-        return $data;
+        return $data; // Always returns stdClass
     }
 
     public function getSchema(string $dir, string $envJson): stdClass
@@ -148,6 +192,18 @@ final class EnvJson
             throw new SchemaFileNotFoundException($schemaJsonFile);
         }
 
-        return json_decode(file_get_contents($schemaJsonFile)); // @phpstan-ignore-line
+        $schemaContents = file_get_contents($schemaJsonFile);
+        if ($schemaContents === false) {
+            throw new SchemaFileNotReadableException($schemaJsonFile);
+        }
+
+        $decodedSchema = json_decode($schemaContents);
+
+        // Ensure the decoded schema is an object (stdClass)
+        if (! $decodedSchema instanceof stdClass) {
+            throw new InvalidJsonSchemaException($schemaJsonFile);
+        }
+
+        return $decodedSchema;
     }
 }
