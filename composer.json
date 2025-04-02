@@ -19,7 +19,8 @@
         "phpunit/phpunit": "^8.5.27 || ^9.5"
     },
     "bin": [
-        "bin/ini2json"
+        "bin/ini2json",
+        "bin/envjson"
     ],
     "autoload": {
         "psr-4": {
@@ -35,6 +36,7 @@
         }
     },
     "scripts": {
+        "bin": "echo 'no bin command.'",
         "test": "./vendor/bin/phpunit",
         "coverage": "php -dzend_extension=xdebug.so -dxdebug.mode=coverage ./vendor/bin/phpunit --coverage-text --coverage-html=build/coverage",
         "phpdbg": "phpdbg -qrr ./vendor/bin/phpunit --coverage-text --coverage-html ./build/coverage --coverage-clover=coverage.xml",
