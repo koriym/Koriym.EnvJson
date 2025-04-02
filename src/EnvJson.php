@@ -7,6 +7,7 @@ namespace Koriym\EnvJson;
 use JsonSchema\Validator;
 use Koriym\EnvJson\Exception\EnvJsonFileNotFoundException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
+use Koriym\EnvJson\Exception\InvalidJsonSchemaException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use stdClass;
 
@@ -116,7 +117,7 @@ final class EnvJson
 
         // Make sure schema has properties
         if (! isset($schema->properties)) {
-            return $data;
+            throw new InvalidJsonSchemaException(); // @codeCoverageIgnore
         }
 
         // Get each property from the environment using getenv()
