@@ -7,6 +7,7 @@ namespace Koriym\EnvJson;
 use JsonSchema\Validator;
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
 use Koriym\EnvJson\Exception\InvalidJsonSchemaException;
+use Koriym\EnvJson\Exception\RuntimeException;
 use Koriym\EnvJson\Exception\SchemaFileNotFoundException;
 use Koriym\EnvJson\Exception\SchemaFileNotReadableException;
 use stdClass;
@@ -99,12 +100,12 @@ final class EnvJson
         if ($envJsonFile !== false) {
             $contents = file_get_contents($envJsonFile);
             if ($contents === false) {
-                throw new Exception\RuntimeException("Failed to read env file: {$envJsonFile}");
+                throw new RuntimeException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
             }
 
             $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
             if (! is_array($decoded)) {
-                throw new Exception\RuntimeException("Invalid JSON format in env file: {$envJsonFile}. Expected array.");
+                throw new RuntimeException("Invalid JSON format in env file: {$envJsonFile}. Expected array."); // @codeCoverageIgnore
             }
 
             // Although we expect array<string, string>, PHPStan might still complain.
@@ -116,12 +117,12 @@ final class EnvJson
         if ($envDistJsonFile !== false) {
             $contents = file_get_contents($envDistJsonFile);
             if ($contents === false) {
-                throw new Exception\RuntimeException("Failed to read env file: {$envDistJsonFile}");
+                throw new RuntimeException("Failed to read env file: {$envDistJsonFile}"); // @codeCoverageIgnore
             }
 
             $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
             if (! is_array($decoded)) {
-                throw new Exception\RuntimeException("Invalid JSON format in env file: {$envDistJsonFile}. Expected array.");
+                throw RuntimeException("Invalid JSON format in env file: {$envDistJsonFile}. Expected array."); // @codeCoverageIgnore
             }
 
             // Although we expect array<string, string>, PHPStan might still complain.
