@@ -9,7 +9,7 @@ use JsonSchema\Validator;
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonFormatException;
 use Koriym\EnvJson\Exception\InvalidJsonContentException;
-use Koriym\EnvJson\Exception\JsonFileNotReadableException;
+use Koriym\EnvJson\Exception\InvalidJsonFileException;
 use stdClass;
 
 use function array_merge;
@@ -84,7 +84,7 @@ final class EnvJson
             try {
                 $contents = file_get_contents($envJsonFile);
                 if ($contents === false) { // @codeCoverageIgnore
-                    throw new JsonFileNotReadableException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
+                    throw new InvalidJsonFileException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
                 }
 
                 $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
@@ -95,7 +95,7 @@ final class EnvJson
                 $envData = $decoded;
             } catch (JsonException $e) {
                 throw new InvalidJsonContentException("Invalid JSON in env file: {$envJsonFile} - " . $e->getMessage(), 0, $e);
-            } catch (JsonFileNotReadableException $e) { // @codeCoverageIgnore
+            } catch (InvalidJsonFileException $e) { // @codeCoverageIgnore
                 // Allow continuing if env.json is unreadable but env.dist.json might exist
                 // Log or handle this case if necessary, for now, we proceed
             }
@@ -105,7 +105,7 @@ final class EnvJson
         if (file_exists($envDistJsonFile) && is_readable($envDistJsonFile)) {
             $contents = file_get_contents($envDistJsonFile);
             if ($contents === false) { // @codeCoverageIgnore
-                throw new JsonFileNotReadableException("Failed to read env.dist file: {$envDistJsonFile}"); // @codeCoverageIgnore
+                throw new InvalidJsonFileException("Failed to read env.dist file: {$envDistJsonFile}"); // @codeCoverageIgnore
             }
 
             try {
@@ -118,7 +118,7 @@ final class EnvJson
                 $envData = array_merge($envData, $decodedDist);
             } catch (JsonException $e) {
                 throw new InvalidJsonContentException("Invalid JSON in env.dist file: {$envDistJsonFile} - " . $e->getMessage(), 0, $e);
-            } catch (JsonFileNotReadableException $e) { // @codeCoverageIgnore
+            } catch (InvalidJsonFileException $e) { // @codeCoverageIgnore
                 // If env.dist.json is unreadable, we might still have data from env.json
                 // Log or handle this case if necessary, for now, we proceed
             }
@@ -182,11 +182,11 @@ final class EnvJson
     private function fileGetJsonObject(string $file): stdClass
     {
         if (! is_readable($file)) {
-            throw new JsonFileNotReadableException($file);
+            throw new InvalidJsonFileException($file);
         }
 
         if (is_dir($file)) {
-            throw new JsonFileNotReadableException($file);
+            throw new InvalidJsonFileException($file);
         }
 
         $contents = (string) file_get_contents($file);

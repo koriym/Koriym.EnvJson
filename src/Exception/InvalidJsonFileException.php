@@ -6,6 +6,6 @@ namespace Koriym\EnvJson\Exception;
 
 use RuntimeException;
 
-final class JsonFileNotReadableException extends RuntimeException
+final class InvalidJsonFileException extends RuntimeException
 {
 }

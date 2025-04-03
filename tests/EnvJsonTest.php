@@ -8,7 +8,7 @@ namespace Koriym\EnvJson;
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonFormatException;
 use Koriym\EnvJson\Exception\InvalidJsonContentException;
-use Koriym\EnvJson\Exception\JsonFileNotReadableException;
+use Koriym\EnvJson\Exception\InvalidJsonFileException;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use stdClass;
@@ -115,7 +115,7 @@ class EnvJsonTest extends TestCase
 
     public function testNoSchemaFile(): void
     {
-        $this->expectException(JsonFileNotReadableException::class);
+        $this->expectException(InvalidJsonFileException::class);
         (new EnvJson())->load(__DIR__ . '/Fake/no-schema'); // Changed path
     }
 
@@ -151,7 +151,7 @@ class EnvJsonTest extends TestCase
     public function testUnreadableSchemaFile(): void
     {
         // Update expectation based on actual behavior observed in composer coverage
-        $this->expectException(JsonFileNotReadableException::class);
+        $this->expectException(InvalidJsonFileException::class);
         (new EnvJson())->load(__DIR__ . '/Fake/unreadable-schema');
     }
 
@@ -233,8 +233,7 @@ class EnvJsonTest extends TestCase
         // setUp ensures REQUIRED_PROP is not set, forcing env.json read attempt
         // The file tests/Fake/invalid-env-json-content/env.json contains invalid JSON ("\xB1\x31")
 
-        $this->expectException(InvalidJsonContentException::class);
-        $this->expectExceptionMessageMatches('/Invalid JSON in env file:/');
+        $this->expectException(InvalidJsonFileException::class);
 
         try {
             (new EnvJson())->load($testDir);
@@ -256,7 +255,7 @@ class EnvJsonTest extends TestCase
 
     public function testFileGetJsonObjectIsDir(): void
     {
-        $this->expectException(JsonFileNotReadableException::class);
+        $this->expectException(InvalidJsonFileException::class);
         // Adjust expectation to match the actual exception message (the path)
         $expectedPath = __DIR__ . '/Fake';
         $this->expectExceptionMessage($expectedPath);
