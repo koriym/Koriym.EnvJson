@@ -2,101 +2,154 @@
 
 [Japanese](./README.ja.md)
 
-Use JSON instead of  `.env` file to set environment variables.
-Validation by [JSON schema](https://json-schema.org/) is performed on environment variables as well as JSON.
+A modern approach to environment variables using JSON instead of `.env` files, with built-in validation via [JSON schema](https://json-schema.org/).
+
+## Features
+
+- **Type-safe environment variables** with JSON schema validation
+- **Better documentation** through schema descriptions and constraints
+- **Conversion tools** to migrate from `.env` to JSON format
+- **CLI utilities** for shell integration and different output formats
+- **Fallback mechanism** for development environments
 
 ## Installation
 
-    composer require koriym/env-json
+```bash
+composer require koriym/env-json
+```
 
-## Usage
-
-Specify the directory of the `env.schema.json` schema file to `load()`.
+## Basic Usage
 
 ```php
-$env = (new EnvJson())->load($dir);
-assert($env instanceof stdClass);
-// Environment variables can be accessed as properties or by getenv()
-assert($env->FOO === 'foo1');
-assert(getenv('FOO') === 'foo1');
+// Load and validate environment variables
+$env = (new EnvJson())->load(__DIR__);
+
+// Access variables as object properties
+echo $env->DATABASE_URL;
+
+// Or use traditional getenv()
+echo getenv('DATABASE_URL');
 ```
 
-1) If environment variables are already set, they are validated by `env.schema.json` to see if they are correct.
-2) If not, `env.json` or `env.dist.json` is read, validated by `env.schema.json`, and exported as the environment variables.
+## Configuration Files
 
-`$dir/env.json` or `$dir/env.dist.json`
+### JSON Schema (env.schema.json)
 
-```json
-{
-    "$schema": "./env.schema.json",
-    "FOO": "foo1",
-    "BAR": "bar1"
-}
-```
-
-`$dir/env.schema.json`
+Define your environment variables with types, descriptions, and constraints:
 
 ```json
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "required": [
-        "FOO", "BAR"
+        "DATABASE_URL", "API_KEY"
     ],
     "properties": {
-        "FOO": {
-            "description": "Foo's value",
-            "minLength": 3
+        "DATABASE_URL": {
+            "description": "Connection string for the database",
+            "type": "string",
+            "pattern": "^mysql://.*"
         },
-        "BAR": {
-            "description": "Bar's value",
-            "enum": ["bar1", "bar2"]
+        "API_KEY": {
+            "description": "Authentication key for external API",
+            "type": "string",
+            "minLength": 32
+        },
+        "DEBUG_MODE": {
+            "description": "Enable debug output",
+            "type": "boolean",
+            "default": false
         }
     }
 }
 ```
 
-It can provide more appropriate documentation and constraints compared to `.env` files.
+### Environment File (env.json)
 
-## Convert ini file
+Your actual configuration values:
 
-JSON and its schema file are generated from the `.env` file with `ini2json`.
+```json
+{
+    "$schema": "./env.schema.json",
+    "DATABASE_URL": "mysql://user:pass@localhost/mydb",
+    "API_KEY": "1234567890abcdef1234567890abcdef",
+    "DEBUG_MODE": true
+}
+```
+
+## Workflow & Best Practices
+
+### Development Environment
+
+1. **Schema creation**: Define `env.schema.json` with all required variables, types, and constraints
+2. **Default values**: Create `env.dist.json` with default/sample values that can be shared with the team
+3. **Local overrides**: Create `env.json` with your specific local values (add to `.gitignore`)
+4. **Loading process**:
+    - EnvJson first tries to validate existing environment variables
+    - If validation fails, it loads `env.json` if present
+    - If `env.json` is not found, it falls back to `env.dist.json`
+
+### Production Environment
+
+1. **CI/CD setup**:
+    - Remove `env.dist.json` during deployment (not needed in production)
+    - Do not include `env.json` (should be in `.gitignore`)
+2. **Configuration**: Set all environment variables directly in your production environment
+3. **Validation**: EnvJson validates that all required variables are present and valid
+
+## Converting from .env
+
+Convert your existing `.env` files to JSON format:
 
 ```bash
 bin/ini2json .env
 ```
 
+This generates both `env.schema.json` and `env.dist.json` files.
+
 ## Command Line Tool: envjson
 
-Loads environment variables from `env.json` (or `env.dist.json`) validated by `env.schema.json`.
-
-**Usage:**
+The `envjson` command line tool helps you integrate with various environments:
 
 ```bash
 # Load variables into current shell
 source <(bin/envjson)
 
-# Specify directory containing env files
+# Specify custom directory
 source <(bin/envjson -d ./config)
 
-# Output in FPM format env[FOO] = foo1
+# Output in PHP-FPM format: env[FOO] = "foo1"
 bin/envjson -d ./config -o fpm > .env.fpm
 
-# Output in INI format 	FOO=foo1
+# Output in INI format: FOO="foo1"
 bin/envjson -d ./config -o ini > env.ini
 
-# Output in shell format export FOO=foo1
-bin/envjson -d ./config -o shell > env.ini
-bin/envjson -d ./config > env.ini
+# Output in shell format: export FOO="foo1"
+bin/envjson -d ./config -o shell > env.sh
 ```
 
-**Options:**
+### Options
 
-```bash
-  -d --dir=DIR     Directory containing env.json and env.schema.json files (default: current directory)
+```
+  -d --dir=DIR     Directory containing env files (default: current directory)
   -f --file=FILE   JSON file name to load (default: env.json)
-  -o --output=FMT  Output format: shell fpm ini (default: shell)
+  -o --output=FMT  Output format: shell, fpm, ini (default: shell)
   -v --verbose     Show detailed messages
   -q --quiet       Suppress all warning messages
-  -h --help        Display this help message
+  -h --help        Display help message
 ```
+
+## Why JSON instead of .env?
+
+- **Type Safety**: Validate types and constraints before your application starts
+- **Rich Documentation**: Add descriptions, examples, and constraints directly in your schema
+- **IDE Support**: Better tooling with JSON schema validation in editors
+- **Structured Data**: Support for complex nested configurations when needed
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+[MIT License](./LICENSE)
