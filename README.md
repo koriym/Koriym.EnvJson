@@ -154,3 +154,7 @@ bin/envjson -d ./config -o shell > env.sh
 
 <img src="https://koriym.github.io/Koriym.EnvJson/images/story/en1.jpg" width="500px" alt="env.json story">
 
+## Link
+
+- [GitHub](https://github.com/koriym/Koriym.EnvJson)
+- [Packagist](https://packagist.org/packages/koriym/env-json)
