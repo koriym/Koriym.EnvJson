@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Koriym\EnvJson;
 
-use Koriym\EnvJson\Exception\InvalidIniFileException; // Added this line
+use Koriym\EnvJson\Exception\InvalidIniFileException;
 use PHPUnit\Framework\TestCase;
 
 use function str_replace;
@@ -14,7 +14,7 @@ class JsonTest extends TestCase
     public function testJson(): void
     {
         $envFile = __DIR__ . '/Fake/.env';
-        $json = new Json($envFile);
+        $json = new IniJson($envFile);
         $this->assertSameNormalized('{
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
@@ -31,8 +31,7 @@ class JsonTest extends TestCase
             "type": "string"
         },
         "API": {
-            "type": "string",
-            "format": "uri"
+            "type": "string"
         }
     }
 }
@@ -52,10 +51,19 @@ class JsonTest extends TestCase
         $this->assertSame($normalize($expected), $normalize($actual), $message);
     }
 
+    public function testNonExustsIniFile(): void
+    {
+        $this->expectException(InvalidIniFileException::class);
+        $invalidIniFile = '__NON_EXISTENT__';
+        // Attempting to parse a non-existent file will cause parse_ini_file to return false
+        new IniJson($invalidIniFile);
+    }
+
     public function testInvalidIniFile(): void
     {
-        $this->expectException(InvalidIniFileException::class); // Changed from RuntimeException
-        $this->expectExceptionMessage('Failed to parse INI file: /invalid/path/to/.env');
-        new Json('/invalid/path/to/.env');
+        $this->expectException(InvalidIniFileException::class);
+        $invalidIniFile = __DIR__ . '/Fake/invalid.ini';
+        // Attempting to parse a non-existent file will cause parse_ini_file to return false
+        new IniJson($invalidIniFile);
     }
 }

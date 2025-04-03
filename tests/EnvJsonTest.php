@@ -10,10 +10,19 @@ use Koriym\EnvJson\Exception\InvalidEnvJsonFormatException;
 use Koriym\EnvJson\Exception\InvalidJsonContentException;
 use Koriym\EnvJson\Exception\JsonFileNotReadableException;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 use stdClass;
 
+use function file_exists;
+use function file_put_contents;
 use function getenv;
+use function is_dir;
+use function json_encode;
+use function mkdir;
 use function putenv;
+use function rmdir;
+use function uniqid;
+use function unlink;
 
 class EnvJsonTest extends TestCase
 {
@@ -174,5 +183,73 @@ class EnvJsonTest extends TestCase
         $loadedEnv = (new EnvJson())->load(__DIR__ . '/Fake/no-file-invalid-env');
         $this->assertInstanceOf(stdClass::class, $loadedEnv);
         $this->assertEmpty((array) $loadedEnv, 'Expected empty object when no file found and env vars are invalid');
+    }
+
+    public function testInvalidDistJsonContent(): void // Re-added this test
+    {
+        $testDir = __DIR__ . '/Fake/invalid-dist-content';
+        $envDistFile = $testDir . '/env.dist.json';
+        $schemaFile = $testDir . '/env.schema.json';
+        $envFile = $testDir . '/env.json'; // Path to potentially non-existent env.json
+
+        // Ensure env.json does NOT exist for this test
+        if (file_exists($envFile)) {
+            unlink($envFile);
+        }
+
+        // Create directory if it doesn't exist
+        if (! is_dir($testDir)) {
+            mkdir($testDir, 0777, true);
+        }
+
+        // Create an invalid JSON file (invalid UTF-8 sequence) for env.dist.json
+        file_put_contents($envDistFile, "\"\xB1\x31\""); // Invalid UTF-8 should trigger JSON_THROW_ON_ERROR
+        // Create a schema that requires a unique property not set in the environment
+        // This forces the initial environment check to fail and proceed to read env.dist.json
+        $uniquePropName = 'UNIQUE_PROP_FOR_DIST_TEST_' . uniqid();
+        $schemaContent = json_encode([
+            'type' => 'object',
+            'properties' => [$uniquePropName => ['type' => 'string']],
+            'required' => [$uniquePropName], // Make it required
+        ]);
+        file_put_contents($schemaFile, $schemaContent);
+
+        // setUp ensures $uniquePropName is not set in the environment
+
+        $this->expectException(InvalidJsonContentException::class);
+        $this->expectExceptionMessageMatches('/Invalid JSON in env.dist file:/');
+
+        try {
+            // Load should fail when trying to decode invalid env.dist.json
+            (new EnvJson())->load($testDir);
+        } finally {
+            // Clean up created files and directory
+            if (file_exists($envDistFile)) {
+                unlink($envDistFile);
+            }
+
+            if (file_exists($schemaFile)) {
+                unlink($schemaFile);
+            }
+
+            if (is_dir($testDir)) {
+                rmdir($testDir);
+            }
+        }
+    }
+
+    public function testFileGetJsonObjectIsDir(): void
+    {
+        $this->expectException(JsonFileNotReadableException::class);
+        // Adjust expectation to match the actual exception message (the path)
+        $expectedPath = __DIR__ . '/Fake';
+        $this->expectExceptionMessage($expectedPath);
+
+        $envJson = new EnvJson(); // Instantiate EnvJson
+        $method = new ReflectionMethod(EnvJson::class, 'fileGetJsonObject'); // Use FQCN \ReflectionMethod
+        $method->setAccessible(true); // Make the private method accessible
+
+        // Call the private method using reflection with a path to a directory
+        $method->invoke($envJson, __DIR__ . '/Fake');
     }
 }

@@ -7,40 +7,39 @@ namespace Koriym\EnvJson;
 use Koriym\EnvJson\Exception\InvalidIniFileException;
 
 use function array_keys;
+use function file_exists;
 use function json_encode;
 use function parse_ini_file;
 use function sort;
 
+use const INI_SCANNER_TYPED;
 use const JSON_PRETTY_PRINT;
 use const JSON_THROW_ON_ERROR;
 use const JSON_UNESCAPED_SLASHES;
 use const PHP_EOL;
 
 // Removed @psalm-immutable due to impure json_last_error() call
-final class Json
+final class IniJson
 {
     public string $data;
     public string $schema;
 
     public function __construct(string $iniFile)
     {
-        $ini = parse_ini_file($iniFile);
+        if (! file_exists($iniFile)) {
+            throw new InvalidIniFileException("'Failed to parse INI file: {$iniFile}");
+        }
+
+        $ini = @parse_ini_file($iniFile, false, INI_SCANNER_TYPED);
         if ($ini === false) {
             throw new InvalidIniFileException("Failed to parse INI file: {$iniFile}");
         }
-
-        // JSON_THROW_ON_ERROR makes json_encode throw on error, so no need to check for false here
 
         // Manually generate schema
         $properties = [];
         $required = [];
         foreach (array_keys($ini) as $key) {
             $property = ['type' => 'string'];
-            // Special case based on test expectation for API key format
-            if ($key === 'API') {
-                $property['format'] = 'uri';
-            }
-
             $properties[$key] = $property;
             $required[] = $key;
         }
