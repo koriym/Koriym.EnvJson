@@ -79,11 +79,15 @@ source <(bin/envjson)
 # Specify directory containing env files
 source <(bin/envjson -d ./config)
 
-# Output in FPM format
+# Output in FPM format env[FOO] = foo1
 bin/envjson -d ./config -o fpm > .env.fpm
 
-# Output in INI format
+# Output in INI format 	FOO=foo1
 bin/envjson -d ./config -o ini > env.ini
+
+# Output in shell format export FOO=foo1
+bin/envjson -d ./config -o shell > env.ini
+bin/envjson -d ./config > env.ini
 ```
 
 **Options:**

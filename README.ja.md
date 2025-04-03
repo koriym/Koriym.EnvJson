@@ -83,6 +83,10 @@ bin/envjson -d ./config -o fpm > .env.fpm
 
 # INI形式で出力
 bin/envjson -d ./config -o ini > env.ini
+
+# シェル形式で出力
+bin/envjson -d ./config -o shell > env.ini
+bin/envjson -d ./config > env.ini
 ```
 
 **オプション:**
