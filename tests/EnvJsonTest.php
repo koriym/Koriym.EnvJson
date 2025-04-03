@@ -227,6 +227,33 @@ class EnvJsonTest extends TestCase
         }
     }
 
+    public function testInvalidEnvJsonContent(): void
+    {
+        $testDir = __DIR__ . '/Fake/invalid-env-json-content';
+        // setUp ensures REQUIRED_PROP is not set, forcing env.json read attempt
+        // The file tests/Fake/invalid-env-json-content/env.json contains invalid JSON ("\xB1\x31")
+
+        $this->expectException(InvalidJsonContentException::class);
+        $this->expectExceptionMessageMatches('/Invalid JSON in env file:/');
+
+        try {
+            (new EnvJson())->load($testDir);
+        } finally {
+            // Optional: Clean up if files were created dynamically (though here they are static)
+            // If these files are checked in, cleanup might not be needed.
+            // Keeping it here for robustness in case the setup changes.
+            $envFile = $testDir . '/env.json';
+            $schemaFile = $testDir . '/env.schema.json';
+            if (file_exists($envFile)) {
+                unlink($envFile); // Uncomment if file is dynamically created
+            }
+
+            if (file_exists($schemaFile)) {
+                unlink($schemaFile); // Uncomment if file is dynamically created
+            }
+        }
+    }
+
     public function testFileGetJsonObjectIsDir(): void
     {
         $this->expectException(JsonFileNotReadableException::class);
