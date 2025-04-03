@@ -122,7 +122,8 @@ final class EnvJson
 
             $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
             if (! is_array($decoded)) {
-                throw RuntimeException("Invalid JSON format in env file: {$envDistJsonFile}. Expected array."); // @codeCoverageIgnore
+-                throw RuntimeException("Invalid JSON format in env file: {$envDistJsonFile}. Expected array."); // @codeCoverageIgnore
++                throw new RuntimeException("Invalid JSON format in env file: {$envDistJsonFile}. Expected array."); // @codeCoverageIgnore
             }
 
             // Although we expect array<string, string>, PHPStan might still complain.
