@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Koriym\EnvJson;
 
+use Koriym\EnvJson\Exception\InvalidIniFileException; // Added this line
 use PHPUnit\Framework\TestCase;
 
 use function str_replace;
@@ -49,5 +50,12 @@ class JsonTest extends TestCase
     {
         $normalize = static fn (string $s): string => str_replace(["\r\n", "\r"], "\n", $s);
         $this->assertSame($normalize($expected), $normalize($actual), $message);
+    }
+
+    public function testInvalidIniFile(): void
+    {
+        $this->expectException(InvalidIniFileException::class); // Changed from RuntimeException
+        $this->expectExceptionMessage('Failed to parse INI file: /invalid/path/to/.env');
+        new Json('/invalid/path/to/.env');
     }
 }
