@@ -40,7 +40,6 @@ final class EnvJson
 
     public function load(string $dir, string $json = 'env.json'): stdClass
     {
-//        $handler = $this->suppressPhp81DeprecatedError();
         $schema = $this->getSchema($dir);
 
         $pureEnv = $this->collectEnvFromSchema($schema);
@@ -57,7 +56,6 @@ final class EnvJson
         $this->validator->validate($pureEnvByFile, $schema);
 
         $isPureEnvByFileValid = $this->validator->isValid();
-//        set_error_handler($handler);
 
         if ($isPureEnvByFileValid) {
             return $pureEnvByFile; // @phpstan-ignore-line - This is a valid return type
@@ -71,15 +69,6 @@ final class EnvJson
         // Otherwise, if file existed but was invalid according to schema, throw exception
         throw new InvalidEnvJsonException($this->validator);
     }
-
-//    private function suppressPhp81DeprecatedError(): ?callable
-//    {
-//        return set_error_handler(static function (int $errno, string $errstr, string $errfile) {
-//            unset($errstr);
-//
-//            return $errno === E_DEPRECATED && str_contains($errfile, dirname(__DIR__) . '/vendor'); // @codeCoverageIgnore - Hard to reliably trigger specific E_DEPRECATED errors in tests.
-//        });
-//    }
 
     /** @return array<string, mixed> */
     private function getEnv(string $dir, string $jsonName): array
