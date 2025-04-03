@@ -44,7 +44,7 @@ final class Json
         $decodedSchema = json_decode($schema);
         /** @psalm-suppress ImpureFunctionCall */
         if ($decodedSchema === null && json_last_error() !== JSON_ERROR_NONE) {
-             RuntimeException('Failed to decode generated schema JSON'); // @codeCoverageIgnore
+             throw new RuntimeException('Failed to decode generated schema JSON'); // @codeCoverageIgnore
         }
 
         $encodedSchema = json_encode($decodedSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
