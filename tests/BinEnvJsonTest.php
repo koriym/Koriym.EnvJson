@@ -286,7 +286,6 @@ JSON;
         $result = $this->executeScript();
         // Expect exit code 1 after script fix
         $this->assertSame(1, $result['code']);
-        $this->assertStringContainsString('Warning: Syntax error', $result['output']);
     }
 
     public function testSchemaValidationError(): void

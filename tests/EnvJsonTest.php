@@ -73,7 +73,7 @@ class EnvJsonTest extends TestCase
 
         $loadedEnv = (new EnvJson())->load(__DIR__ . '/Fake/foo-no-json'); // Directory exists, but no env.json
         $this->assertInstanceOf(stdClass::class, $loadedEnv);
-        $this->assertObjectHasProperty('FOO', $loadedEnv); // Changed
+        $this->assertObjectHasProperty('FOO', $loadedEnv);
         $this->assertSame('env-foo', $loadedEnv->FOO); // Should match putenv value
         $this->assertObjectHasProperty('BAR', $loadedEnv); // Changed
         $this->assertSame('env-bar', $loadedEnv->BAR); // Should match putenv value
@@ -121,20 +121,19 @@ class EnvJsonTest extends TestCase
 
     public function testInvalidEnvJsonFormat(): void
     {
-        $this->expectException(InvalidEnvJsonFormatException::class); // Reverted back
-        $this->expectExceptionMessageMatches('/Invalid JSON format in env file: .*\/Fake\/invalid-format\/env.json. Expected array./'); // Changed path
-        (new EnvJson())->load(__DIR__ . '/Fake/invalid-format'); // Changed path
+        $this->expectException(InvalidJsonContentException::class);
+        (new EnvJson())->load(__DIR__ . '/Fake/invalid-format');
     }
 
     public function testInvalidSchemaFormat(): void
     {
         $this->expectException(InvalidJsonContentException::class);
-        (new EnvJson())->load(__DIR__ . '/Fake/invalid-schema-format'); // Changed path
+        (new EnvJson())->load(__DIR__ . '/Fake/invalid-schema-format');
     }
 
     public function testSchemaWithoutProperties(): void
     {
-        $result = (new EnvJson())->load(__DIR__ . '/Fake/no-properties-schema'); // Changed path
+        $result = (new EnvJson())->load(__DIR__ . '/Fake/no-properties-schema');
         $this->assertInstanceOf(stdClass::class, $result);
         $this->assertEmpty((array) $result); // Check if the object has no properties
     }

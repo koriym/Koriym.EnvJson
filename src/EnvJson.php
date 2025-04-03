@@ -7,10 +7,8 @@ namespace Koriym\EnvJson;
 use JsonException;
 use JsonSchema\Validator;
 use Koriym\EnvJson\Exception\EnvJsonFileNotReadableException;
-// Added
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonFormatException;
-// Added
 use Koriym\EnvJson\Exception\InvalidJsonContentException;
 use Koriym\EnvJson\Exception\JsonFileNotReadableException;
 use stdClass;
@@ -109,27 +107,7 @@ final class EnvJson
                 throw new EnvJsonFileNotReadableException("env file is a directory: {$envJsonFile}");
             }
 
-            $contents = @file_get_contents($envJsonFile); // Suppress errors
-            if ($contents === false) {
-                 // Check readability again after attempting read
-                if (! is_readable($envJsonFile)) { // @codeCoverageIgnore
-                 // - Hard to reliably simulate file read errors after is_readable check.
-                    throw new EnvJsonFileNotReadableException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
-
-                    //  - Hard to reliably simulate file read errors after is_readable check.
-                }
-
-                 // Handle potential rare cases where read fails despite is_readable
-                 throw new EnvJsonFileNotReadableException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
-
-                 // - Hard to reliably simulate file read errors after is_readable check.
-            }
-
-            $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
-            if (! is_array($decoded)) {
-                 // Use the original path in the exception message
-                throw new InvalidEnvJsonFormatException("Invalid JSON format in env file: {$envJsonFile}. Expected array.");
-            }
+            $decoded = (array) $this->fileGetJsonObject($envJsonFile);
 
             // Although we expect array<string, string>, PHPStan might still complain.
             // We rely on schema validation later to enforce types.
