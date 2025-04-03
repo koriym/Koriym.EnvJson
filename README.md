@@ -87,9 +87,12 @@ bin/envjson -d ./config -o ini > env.ini
 ```
 
 **Options:**
+
+```bash
   -d --dir=DIR     Directory containing env.json and env.schema.json files (default: current directory)
   -f --file=FILE   JSON file name to load (default: env.json)
   -o --output=FMT  Output format: shell fpm ini (default: shell)
   -v --verbose     Show detailed messages
   -q --quiet       Suppress all warning messages
   -h --help        Display this help message
+```

@@ -86,9 +86,12 @@ bin/envjson -d ./config -o ini > env.ini
 ```
 
 **オプション:**
+
+```bash
   -d --dir=DIR     env.json と env.schema.json ファイルが含まれるディレクトリ (デフォルト: カレントディレクトリ)
   -f --file=FILE   読み込むJSONファイル名 (デフォルト: env.json)
   -o --output=FMT  出力形式: shell fpm ini (デフォルト: shell)
   -v --verbose     詳細メッセージを表示
   -q --quiet       全ての警告メッセージを抑制
   -h --help        このヘルプメッセージを表示
+```
