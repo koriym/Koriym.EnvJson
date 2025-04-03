@@ -22,7 +22,7 @@ use function is_object;
 use function is_readable;
 use function is_scalar;
 use function json_decode;
-use function json_last_error;
+use function json_last_error_msg;
 use function putenv;
 use function sprintf;
 use function str_replace;
