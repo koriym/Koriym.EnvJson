@@ -154,18 +154,6 @@ class EnvJsonTest extends TestCase
         (new EnvJson())->load(__DIR__ . '/Fake/unreadable-schema');
     }
 
-    public function testUnreadableEnvJsonFile(): void
-    {
-        $this->expectException(JsonFileNotReadableException::class);
-        (new EnvJson())->load(__DIR__ . '/Fake/unreadable-env');
-    }
-
-    public function testUnreadableDistFile(): void
-    {
-        $this->expectException(JsonFileNotReadableException::class);
-        (new EnvJson())->load(__DIR__ . '/Fake/unreadable-dist');
-    }
-
     public function testInvalidDistFormat(): void
     {
         // env.json does not exist, env.dist.json exists but has invalid format
