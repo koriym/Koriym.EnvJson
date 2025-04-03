@@ -1,0 +1,121 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+use Koriym\EnvJson\EnvJson;
+
+// Find the autoload file
+$autoloadFiles = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$autoloadFile = null;
+foreach ($autoloadFiles as $file) {
+    if (file_exists($file)) {
+        $autoloadFile = $file;
+        break;
+    }
+}
+
+if ($autoloadFile === null) {
+    echo 'Autoload file not found. Make sure Composer dependencies are installed.' . PHP_EOL;
+    exit(1);
+}
+
+require $autoloadFile;
+
+// Parse command line arguments
+$options = getopt('d:f:hvqo:', ['dir:', 'file:', 'help', 'verbose', 'quiet', 'output:']);
+
+$verbose = isset($options['v']) || isset($options['verbose']);
+$quiet = isset($options['q']) || isset($options['quiet']);
+
+// Get output format
+$outputFormat = 'shell'; // Default format
+if (isset($options['o'])) {
+    $outputFormat = $options['o'];
+} elseif (isset($options['output'])) {
+    $outputFormat = $options['output'];
+}
+
+if (isset($options['h']) || isset($options['help'])) {
+    echo "Usage: envjson [OPTIONS]" . PHP_EOL;
+    echo "Options:" . PHP_EOL;
+    echo "  -d, --dir=DIR     Directory containing env.json and env.schema.json files (default: current directory)" . PHP_EOL;
+    echo "  -f, --file=FILE   JSON file name to load (default: env.json)" . PHP_EOL;
+    echo "  -o, --output=FMT  Output format: shell, fpm, ini (default: shell)" . PHP_EOL;
+    echo "  -v, --verbose     Show detailed messages" . PHP_EOL;
+    echo "  -q, --quiet       Suppress all warning messages" . PHP_EOL;
+    echo "  -h, --help        Display this help message" . PHP_EOL;
+    echo PHP_EOL;
+    echo "Example usage:" . PHP_EOL;
+    echo "  source <(envjson)" . PHP_EOL;
+    echo "  source <(envjson -d ./config)" . PHP_EOL;
+    echo "  envjson --output=fpm > .env.fpm" . PHP_EOL;
+    echo "  envjson --output=ini > env.ini" . PHP_EOL;
+    exit(0);
+}
+
+// Get directory
+$dir = getcwd();
+if (isset($options['d'])) {
+    $dir = $options['d'];
+} elseif (isset($options['dir'])) {
+    $dir = $options['dir'];
+}
+
+// Get file
+$file = 'env.json';
+if (isset($options['f'])) {
+    $file = $options['f'];
+} elseif (isset($options['file'])) {
+    $file = $options['file'];
+}
+
+try {
+    // Load and validate environment variables
+    $envJson = new EnvJson();
+    $env = $envJson->load($dir, $file);
+
+    // Output in the requested format
+    foreach (get_object_vars($env) as $key => $value) {
+        switch ($outputFormat) {
+            case 'fpm':
+                // PHP-FPM format: env[KEY] = "value"
+                $escapedValue = addslashes($value);
+                echo "env[{$key}] = \"{$escapedValue}\"" . PHP_EOL;
+                break;
+
+            case 'ini':
+                // php.ini format: KEY = value
+                $escapedValue = addslashes($value);
+                echo "{$key} = \"{$escapedValue}\"" . PHP_EOL;
+                break;
+
+            case 'shell':
+            default:
+                // Shell format: export KEY="value"
+                $escapedValue = addslashes($value);
+                echo "export {$key}=\"{$escapedValue}\"" . PHP_EOL;
+                break;
+        }
+    }
+
+    if ($verbose) {
+        fwrite(STDERR, "Successfully loaded " . count(get_object_vars($env)) . " environment variables in {$outputFormat} format." . PHP_EOL);
+    }
+} catch (Exception $e) {
+    // Only show warning if not in quiet mode
+    if (!$quiet) {
+        fwrite(STDERR, "Warning: " . $e->getMessage() . PHP_EOL);
+    }
+
+    // In verbose mode, show more details
+    if ($verbose) {
+        fwrite(STDERR, "No environment variables were loaded. Using directory: {$dir}, file: {$file}" . PHP_EOL);
+    }
+
+    // Return error status on exception
+    exit(1);
+}

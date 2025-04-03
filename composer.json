@@ -9,22 +9,19 @@
         }
     ],
     "require": {
-        "php": "^7.4 || ^8.0",
+        "php": "^8.1",
         "ext-json": "*",
-        "justinrainbow/json-schema": "^6.0",
-        "evaisse/php-json-schema-generator": "^2.1"
+        "amphp/amp": "^v3.1",
+        "justinrainbow/json-schema": "^6.4",
+        "marc-mabe/php-enum": "^v4.7.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^8.5.27 || ^9.5",
-        "doctrine/coding-standard": "^10.0",
-        "phpmd/phpmd": "^2.9",
-        "phpmetrics/phpmetrics": "^2.7",
-        "phpstan/phpstan": "^1.1",
-        "squizlabs/php_codesniffer": "^3.5",
-        "vimeo/psalm": "^4.2"
+        "bamarni/composer-bin-plugin": "^1.8.2",
+        "phpunit/phpunit": "^9.6.22"
     },
     "bin": [
-        "bin/ini2json"
+        "bin/ini2json",
+        "bin/envjson"
     ],
     "autoload": {
         "psr-4": {
@@ -40,6 +37,7 @@
         }
     },
     "scripts": {
+        "bin": "echo 'no bin command.'",
         "test": "./vendor/bin/phpunit",
         "coverage": "php -dzend_extension=xdebug.so -dxdebug.mode=coverage ./vendor/bin/phpunit --coverage-text --coverage-html=build/coverage",
         "phpdbg": "phpdbg -qrr ./vendor/bin/phpunit --coverage-text --coverage-html ./build/coverage --coverage-clover=coverage.xml",
@@ -82,9 +80,17 @@
         "build": "Build project"
     },
     "config": {
+        "sort-packages": true,
         "allow-plugins": {
             "bamarni/composer-bin-plugin": true,
             "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "extra": {
+        "bamarni-bin": {
+            "bin-links": true,
+            "target-directory": "vendor-bin",
+            "forward-command": true
         }
     }
 }

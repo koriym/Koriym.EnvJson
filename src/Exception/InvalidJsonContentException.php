@@ -6,6 +6,6 @@ namespace Koriym\EnvJson\Exception;
 
 use LogicException;
 
-final class InvalidJsonSchemaException extends LogicException
+final class InvalidJsonContentException extends LogicException
 {
 }

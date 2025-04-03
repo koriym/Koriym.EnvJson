@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-use Koriym\EnvJson\Json;
+use Koriym\EnvJson\IniJson;
 
 foreach ([__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoload.php'] as $file) {
     if (file_exists($file)) {
@@ -32,7 +32,7 @@ if (! file_exists($iniFile)) {
 }
 
 try {
-    $json = new Json($iniFile);
+    $json = new IniJson($iniFile);
 } catch (JsonException $e) {
     echo $e;
     exit(1);
