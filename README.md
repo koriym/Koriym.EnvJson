@@ -80,6 +80,7 @@ Your actual configuration values:
 }
 ```
 
+
 ## Workflow & Best Practices
 
 ### Development Environment
@@ -147,12 +148,9 @@ bin/envjson -d ./config -o shell > env.sh
 - **Type Safety**: Validate types and constraints before your application starts
 - **Rich Documentation**: Add descriptions, examples, and constraints directly in your schema
 - **IDE Support**: Better tooling with JSON schema validation in editors
-- **Structured Data**: Support for complex nested configurations when needed
+- **Constrained Data**: Json Schema's constrains for validation
 
-## Contributing
+## Story
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+<img src="https://koriym.github.io/Koriym.EnvJson/images/story/en1.jpg" width="500px" alt="env.json story">
 
-## License
-
-[MIT License](./LICENSE)

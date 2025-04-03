@@ -147,4 +147,9 @@ bin/envjson -d ./config -o shell > env.sh
 - **型安全性**: アプリケーション起動前に型や制約条件を検証
 - **豊富なドキュメント**: スキーマに説明、例、制約を直接追加可能
 - **IDE対応**: エディタでのJSONスキーマバリデーションによる優れたツーリング
-- **構造化データ**: 必要に応じて複雑なネスト構成をサポート
+- **制約**: JsonSchemaの制約適用
+
+## Story
+
+<img src="https://koriym.github.io/Koriym.EnvJson/images/story/ja4.jpg" width="500px" alt="env.json story">
+
