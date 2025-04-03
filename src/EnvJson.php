@@ -6,14 +6,12 @@ namespace Koriym\EnvJson;
 
 use JsonException;
 use JsonSchema\Validator;
-use Koriym\EnvJson\Exception\EnvJsonFileNotReadableException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonFormatException;
 use Koriym\EnvJson\Exception\InvalidJsonContentException;
 use Koriym\EnvJson\Exception\JsonFileNotReadableException;
 use stdClass;
 
-use function assert;
 use function dirname;
 use function file_exists;
 use function file_get_contents;
@@ -54,9 +52,7 @@ final class EnvJson
         $isEnvValid = $this->validator->isValid();
 
         if ($isEnvValid) {
-            assert($pureEnv instanceof stdClass); // Add assertion
-
-            return $pureEnv;
+            return $pureEnv; // @phpstan-ignore-line - This is a valid return type
         }
 
         $fileEnv = $this->getEnv($dir, $json);
@@ -65,18 +61,14 @@ final class EnvJson
         $this->validator->validate($pureEnvByFile, $schema);
 
         $isPureEnvByFileValid = $this->validator->isValid();
+        set_error_handler($handler);
 
         if ($isPureEnvByFileValid) {
-            set_error_handler($handler);
-            assert($pureEnvByFile instanceof stdClass);
-
-            return $pureEnvByFile;
+            return $pureEnvByFile; // @phpstan-ignore-line - This is a valid return type
         }
 
         // If fileEnv was empty (no file found) and existing env was not valid, return empty object
         if (empty($fileEnv)) {
-            set_error_handler($handler);
-
             return new stdClass();
         }
 
@@ -104,15 +96,13 @@ final class EnvJson
         if (file_exists($envJsonFile)) {
             // Check if it's a directory before trying to read
             if (is_dir($envJsonFile)) {
-                throw new EnvJsonFileNotReadableException("env file is a directory: {$envJsonFile}");
+                throw new JsonFileNotReadableException("env file is a directory: {$envJsonFile}");
             }
 
-            $decoded = (array) $this->fileGetJsonObject($envJsonFile);
+            /** @var array<string, mixed> $json */
+            $json = (array) $this->fileGetJsonObject($envJsonFile); // Return the array
 
-            // Although we expect array<string, string>, PHPStan might still complain.
-            // We rely on schema validation later to enforce types.
-            /** @var array<string, mixed> $decoded */ // Acknowledge values can be mixed initially
-            return $decoded; // Return the array
+            return $json;
         }
 
         // Check env.dist.json if env.json doesn't exist

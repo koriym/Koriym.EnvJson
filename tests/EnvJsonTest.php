@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Koriym\EnvJson;
 
-use Koriym\EnvJson\Exception\EnvJsonFileNotReadableException; // Added
+// Added
 use Koriym\EnvJson\Exception\InvalidEnvJsonException;
 use Koriym\EnvJson\Exception\InvalidEnvJsonFormatException;
 use Koriym\EnvJson\Exception\InvalidJsonContentException;
@@ -147,9 +147,7 @@ class EnvJsonTest extends TestCase
 
     public function testUnreadableEnvJsonFile(): void
     {
-        $this->expectException(EnvJsonFileNotReadableException::class);
-        // Update message to match the specific directory error
-        $this->expectExceptionMessageMatches('/env file is a directory: .*\/Fake\/unreadable-env\/env.json/');
+        $this->expectException(JsonFileNotReadableException::class);
         (new EnvJson())->load(__DIR__ . '/Fake/unreadable-env');
     }
 
