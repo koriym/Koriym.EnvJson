@@ -81,27 +81,19 @@ final class EnvJson
 
         // Try reading env.json
         if (file_exists($envJsonFile) && is_readable($envJsonFile)) {
-            try {
-                $contents = file_get_contents($envJsonFile);
-                if ($contents === false) { // @codeCoverageIgnore
-                    throw new InvalidJsonFileException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
-                }
+            $contents = @file_get_contents($envJsonFile);
+            if ($contents === false) { // @codeCoverageIgnore
+                throw new InvalidJsonFileException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
+            }
 
-                $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
-                if (! is_array($decoded)) {
-                    throw new InvalidEnvJsonFormatException("Invalid JSON format in env file: {$envJsonFile}. Expected array.");
-                }
+            $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+            if (! is_array($decoded)) {
+                throw new InvalidEnvJsonFormatException("Invalid JSON format in env file: {$envJsonFile}. Expected array.");
+            }
 
                 $envData = $decoded;
-            } catch (JsonException $e) {
-                throw new InvalidJsonContentException("Invalid JSON in env file: {$envJsonFile} - " . $e->getMessage(), 0, $e);
-            } catch (InvalidJsonFileException $e) { // @codeCoverageIgnore
-                // Allow continuing if env.json is unreadable but env.dist.json might exist
-                // Log or handle this case if necessary, for now, we proceed
-            }
         }
 
-        // Try reading env.dist.json
         if (file_exists($envDistJsonFile) && is_readable($envDistJsonFile)) {
             $contents = file_get_contents($envDistJsonFile);
             if ($contents === false) { // @codeCoverageIgnore

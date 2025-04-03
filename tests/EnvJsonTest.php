@@ -141,6 +141,18 @@ class EnvJsonTest extends TestCase
         (new EnvJson())->load(__DIR__ . '/Fake/invalid-schema-format');
     }
 
+    public function testCatchInvalidJsonContentException(): void
+    {
+        $this->expectException(InvalidJsonContentException::class);
+        (new EnvJson())->load(__DIR__ . '/Fake/invalid-schema-format');
+    }
+
+    public function testCatchInvalidSchemaJsonContentException(): void
+    {
+        $this->expectException(InvalidJsonContentException::class);
+        (new EnvJson())->load(__DIR__ . '/Fake/invalid-schema-format');
+    }
+
     public function testSchemaWithoutProperties(): void
     {
         $result = (new EnvJson())->load(__DIR__ . '/Fake/no-properties-schema');
