@@ -193,7 +193,7 @@ final class EnvJson
         $contents = (string) file_get_contents($file);
         $stdObject = json_decode($contents);
         if (! $stdObject instanceof stdClass) {
-            throw new InvalidJsonContentException((string) json_last_error());
+            throw new InvalidJsonContentException(sprintf('Error decoding JSON from file %s: %s', $file, json_last_error_msg()));
         }
 
         return $stdObject;
