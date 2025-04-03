@@ -99,7 +99,7 @@ class EnvJsonTest extends TestCase
         // instead of throwing EnvJsonFileNotFoundException
         $result = (new EnvJson())->load(__DIR__ . '/Fake/file-not-found-error'); // Changed path
         $this->assertInstanceOf(stdClass::class, $result);
-        $this->assertEmpty((array)$result); // Check if the object has no properties
+        $this->assertEmpty((array) $result); // Check if the object has no properties
     }
 
     /** @depends testLoadJson */
@@ -144,7 +144,7 @@ class EnvJsonTest extends TestCase
     {
         $result = (new EnvJson())->load(__DIR__ . '/Fake/no-properties-schema');
         $this->assertInstanceOf(stdClass::class, $result);
-        $this->assertEmpty((array)$result); // Check if the object has no properties
+        $this->assertEmpty((array) $result); // Check if the object has no properties
     }
 
     public function testUnreadableSchemaFile(): void
@@ -170,7 +170,7 @@ class EnvJsonTest extends TestCase
         // Expected result: load() returns an empty stdClass object (lines 79-83 in EnvJson.php).
         $loadedEnv = (new EnvJson())->load(__DIR__ . '/Fake/no-file-invalid-env');
         $this->assertInstanceOf(stdClass::class, $loadedEnv);
-        $this->assertEmpty((array)$loadedEnv, 'Expected empty object when no file found and env vars are invalid');
+        $this->assertEmpty((array) $loadedEnv, 'Expected empty object when no file found and env vars are invalid');
     }
 
     public function testInvalidDistJsonContent(): void // Re-added this test
@@ -186,7 +186,7 @@ class EnvJsonTest extends TestCase
         }
 
         // Create directory if it doesn't exist
-        if (!is_dir($testDir)) {
+        if (! is_dir($testDir)) {
             mkdir($testDir, 0777, true);
         }
 

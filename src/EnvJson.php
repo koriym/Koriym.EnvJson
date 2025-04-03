@@ -90,11 +90,6 @@ final class EnvJson
 
         // Check env.json first
         if (file_exists($envJsonFile)) {
-            // Check if it's a directory before trying to read
-            if (is_dir($envJsonFile)) {
-                throw new JsonFileNotReadableException("env file is a directory: {$envJsonFile}");
-            }
-
             /** @var array<string, mixed> $json */
             $json = (array) $this->fileGetJsonObject($envJsonFile); // Return the array
 
@@ -103,11 +98,6 @@ final class EnvJson
 
         // Check env.dist.json if env.json doesn't exist
         if (file_exists($envDistJsonFile)) {
-            // Check if it's a directory before trying to read
-            if (is_dir($envDistJsonFile)) {
-                throw new JsonFileNotReadableException("env.dist file is a directory: {$envDistJsonFile}");
-            }
-
             $contents = @file_get_contents($envDistJsonFile); // Suppress errors
             if ($contents === false) {
                 // Check readability again after attempting read
