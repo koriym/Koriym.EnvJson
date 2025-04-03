@@ -12,6 +12,7 @@ use Koriym\EnvJson\Exception\InvalidJsonContentException;
 use Koriym\EnvJson\Exception\JsonFileNotReadableException;
 use stdClass;
 
+use function array_merge;
 use function file_exists;
 use function file_get_contents;
 use function get_object_vars;
@@ -73,49 +74,58 @@ final class EnvJson
     /** @return array<string, mixed> */
     private function getEnv(string $dir, string $jsonName): array
     {
-        // Construct paths directly instead of using realpath initially
         $envJsonFile = sprintf('%s/%s', $dir, $jsonName);
         $envDistJsonFile = sprintf('%s/%s', $dir, str_replace('.json', '.dist.json', $jsonName));
 
-        // Check env.json first
-        if (file_exists($envJsonFile)) {
-            /** @var array<string, mixed> $json */
-            $json = (array) $this->fileGetJsonObject($envJsonFile); // Return the array
+        $envData = [];
 
-            return $json;
-        }
-
-        // Check env.dist.json if env.json doesn't exist
-        if (file_exists($envDistJsonFile)) {
-            $contents = @file_get_contents($envDistJsonFile); // Suppress errors
-            if ($contents === false) {
-                // Check readability again after attempting read
-                if (! is_readable($envDistJsonFile)) { // @codeCoverageIgnore
-                    throw new JsonFileNotReadableException("Failed to read env.dist file: {$envDistJsonFile}"); // @codeCoverageIgnore
+        // Try reading env.json
+        if (file_exists($envJsonFile) && is_readable($envJsonFile)) {
+            try {
+                $contents = file_get_contents($envJsonFile);
+                if ($contents === false) { // @codeCoverageIgnore
+                    throw new JsonFileNotReadableException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
                 }
 
-                // Handle potential rare cases where read fails despite is_readable
+                $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+                if (! is_array($decoded)) {
+                    throw new InvalidEnvJsonFormatException("Invalid JSON format in env file: {$envJsonFile}. Expected array.");
+                }
+
+                $envData = $decoded;
+            } catch (JsonException $e) {
+                throw new InvalidJsonContentException("Invalid JSON in env file: {$envJsonFile} - " . $e->getMessage(), 0, $e);
+            } catch (JsonFileNotReadableException $e) { // @codeCoverageIgnore
+                // Allow continuing if env.json is unreadable but env.dist.json might exist
+                // Log or handle this case if necessary, for now, we proceed
+            }
+        }
+
+        // Try reading env.dist.json
+        if (file_exists($envDistJsonFile) && is_readable($envDistJsonFile)) {
+            $contents = file_get_contents($envDistJsonFile);
+            if ($contents === false) { // @codeCoverageIgnore
                 throw new JsonFileNotReadableException("Failed to read env.dist file: {$envDistJsonFile}"); // @codeCoverageIgnore
             }
 
             try {
-                $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+                $decodedDist = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+                if (! is_array($decodedDist)) {
+                    throw new InvalidEnvJsonFormatException("Invalid JSON format in env.dist file: {$envDistJsonFile}. Expected array.");
+                }
+
+                // Merge dist into env data, overwriting existing keys
+                $envData = array_merge($envData, $decodedDist);
             } catch (JsonException $e) {
                 throw new InvalidJsonContentException("Invalid JSON in env.dist file: {$envDistJsonFile} - " . $e->getMessage(), 0, $e);
+            } catch (JsonFileNotReadableException $e) { // @codeCoverageIgnore
+                // If env.dist.json is unreadable, we might still have data from env.json
+                // Log or handle this case if necessary, for now, we proceed
             }
-
-            if (! is_array($decoded)) {
-                // Use the original path in the exception message
-                throw new InvalidEnvJsonFormatException("Invalid JSON format in env.dist file: {$envDistJsonFile}. Expected array.");
-            }
-
-            /** @var array<string, mixed> $decoded */
-
-            return $decoded; // Return the decoded associative array
         }
 
-        // If neither file exists, return empty array
-        return [];
+        /** @var array<string, mixed> $envData */
+        return $envData;
     }
 
     /** @param array<string, mixed> $json */

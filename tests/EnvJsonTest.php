@@ -130,7 +130,8 @@ class EnvJsonTest extends TestCase
 
     public function testInvalidEnvJsonFormat(): void
     {
-        $this->expectException(InvalidJsonContentException::class);
+        // Updated expected exception based on the new logic in getEnv
+        $this->expectException(InvalidEnvJsonFormatException::class);
         (new EnvJson())->load(__DIR__ . '/Fake/invalid-format');
     }
 
@@ -239,5 +240,79 @@ class EnvJsonTest extends TestCase
 
         // Call the private method using reflection with a path to a directory
         $method->invoke($envJson, __DIR__ . '/Fake');
+    }
+
+    public function testLoadMergesDistOverEnv(): void
+    {
+        $testDir = __DIR__ . '/Fake/merge-test-' . uniqid();
+        $envFile = $testDir . '/env.json';
+        $envDistFile = $testDir . '/env.dist.json';
+        $schemaFile = $testDir . '/env.schema.json';
+
+        // Create directory
+        if (! is_dir($testDir)) {
+            mkdir($testDir, 0777, true);
+        }
+
+        // Create schema (needs properties from both files)
+        $schemaContent = json_encode([
+            'type' => 'object',
+            'properties' => [
+                'FOO' => ['type' => 'string'],
+                'BAR' => ['type' => 'string'],
+                'BAZ' => ['type' => 'string'],
+            ],
+            'required' => ['FOO', 'BAR', 'BAZ'], // Make them required to force file loading
+        ]);
+        file_put_contents($schemaFile, $schemaContent);
+
+        // Create env.json
+        $envContent = json_encode([
+            'FOO' => 'env-value',
+            'BAR' => 'env-value-only',
+        ]);
+        file_put_contents($envFile, $envContent);
+
+        // Create env.dist.json (overwrites FOO, adds BAZ)
+        $envDistContent = json_encode([
+            'FOO' => 'dist-value-override',
+            'BAZ' => 'dist-value-new',
+        ]);
+        file_put_contents($envDistFile, $envDistContent);
+
+        // Clear env vars to ensure loading from files
+        putenv('FOO');
+        putenv('BAR');
+        putenv('BAZ');
+
+        try {
+            $loadedEnv = (new EnvJson())->load($testDir);
+
+            $this->assertInstanceOf(stdClass::class, $loadedEnv);
+            // Check merged values
+            $this->assertObjectHasProperty('FOO', $loadedEnv);
+            $this->assertSame('dist-value-override', $loadedEnv->FOO, 'Value from env.dist.json should override env.json');
+            $this->assertObjectHasProperty('BAR', $loadedEnv);
+            $this->assertSame('env-value-only', $loadedEnv->BAR, 'Value only in env.json should persist');
+            $this->assertObjectHasProperty('BAZ', $loadedEnv);
+            $this->assertSame('dist-value-new', $loadedEnv->BAZ, 'Value only in env.dist.json should be added');
+        } finally {
+            // Clean up
+            if (file_exists($envFile)) {
+                unlink($envFile);
+            }
+
+            if (file_exists($envDistFile)) {
+                unlink($envDistFile);
+            }
+
+            if (file_exists($schemaFile)) {
+                unlink($schemaFile);
+            }
+
+            if (is_dir($testDir)) {
+                rmdir($testDir);
+            }
+        }
     }
 }
