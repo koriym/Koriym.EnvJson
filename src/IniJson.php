@@ -36,7 +36,7 @@ final class IniJson
     public function __construct(string $iniFile)
     {
         if (! file_exists($iniFile)) {
-            throw new InvalidIniFileException("'Failed to parse INI file: {$iniFile}");
+            throw new InvalidIniFileException("Failed to parse INI file: {$iniFile}");
         }
 
         /** @var array<string, mixed>|false $ini */
