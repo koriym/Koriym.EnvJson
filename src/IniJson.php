@@ -65,7 +65,6 @@ final class IniJson
             'type' => 'object',
             'required' => $required, // Use sorted keys
             'properties' => (object) $properties, // Cast to object for empty properties case
-            // Removed description to match test expectation
         ];
 
         // With JSON_THROW_ON_ERROR, json_encode throws JsonException on error, so no need to check for false
