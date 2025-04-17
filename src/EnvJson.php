@@ -12,24 +12,26 @@ use Koriym\EnvJson\Exception\InvalidJsonContentException;
 use Koriym\EnvJson\Exception\InvalidJsonFileException;
 use stdClass;
 
+use function array_keys;
 use function array_merge;
 use function file_exists;
 use function file_get_contents;
-use function get_object_vars;
 use function getenv;
 use function is_array;
 use function is_dir;
-use function is_object;
 use function is_readable;
 use function is_scalar;
 use function json_decode;
-use function json_last_error_msg;
 use function putenv;
 use function sprintf;
 use function str_replace;
 
 use const JSON_THROW_ON_ERROR;
 
+/**
+ * @psalm-import-type SchemaObjectType from IniJson
+ * @psalm-type LocalSchemaObjectType = array{'$schema': string, type: string, required: list<string>, properties: array<string, mixed>}
+ */
 final class EnvJson
 {
     private Validator $validator;
@@ -43,26 +45,30 @@ final class EnvJson
     {
         $schema = $this->getSchema($dir);
 
-        $pureEnv = $this->collectEnvFromSchema($schema);
-        $this->validator->validate($pureEnv, $schema);
+        $pureEnvArray = $this->collectEnvFromSchema($schema);
+        $pureEnvObject = (object) $pureEnvArray; // Assign cast to variable
+        $this->validator->validate($pureEnvObject, $schema);
         $isEnvValid = $this->validator->isValid();
 
         if ($isEnvValid) {
-            return $pureEnv; // @phpstan-ignore-line - This is a valid return type
+            /** @var stdClass $pureEnvObject */
+            return $pureEnvObject; // Return the object variable
         }
 
         $fileEnv = $this->getEnv($dir, $json);
         $this->putEnv($fileEnv);
-        $pureEnvByFile = $this->collectEnvFromSchema($schema);
-        $this->validator->validate($pureEnvByFile, $schema);
+        $pureEnvByFileArray = $this->collectEnvFromSchema($schema);
+        $pureEnvByFileObject = (object) $pureEnvByFileArray; // Assign cast to variable
+        $this->validator->validate($pureEnvByFileObject, $schema);
 
         $isPureEnvByFileValid = $this->validator->isValid();
 
         if ($isPureEnvByFileValid) {
-            return $pureEnvByFile; // @phpstan-ignore-line - This is a valid return type
+            /** @var stdClass $pureEnvByFileObject */
+            return $pureEnvByFileObject; // Return the object variable
         }
 
-        // If fileEnv was empty (no file found) and existing env was not valid, return empty object
+        // If fileEnv was empty (no file found) and existing env was not valid, return empty stdClass
         if (empty($fileEnv)) {
             return new stdClass();
         }
@@ -77,6 +83,7 @@ final class EnvJson
         $envJsonFile = sprintf('%s/%s', $dir, $jsonName);
         $envDistJsonFile = sprintf('%s/%s', $dir, str_replace('.json', '.dist.json', $jsonName));
 
+        /** @var array<string, mixed> $envData */
         $envData = [];
 
         // Try reading env.json
@@ -86,12 +93,14 @@ final class EnvJson
                 throw new InvalidJsonFileException("Failed to read env file: {$envJsonFile}"); // @codeCoverageIgnore
             }
 
+            /** @var mixed $decoded */
             $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
             if (! is_array($decoded)) {
                 throw new InvalidEnvJsonFormatException("Invalid JSON format in env file: {$envJsonFile}. Expected array.");
             }
 
-                $envData = $decoded;
+            /** @var array<string, mixed> $decoded */
+            $envData = $decoded;
         }
 
         if (file_exists($envDistJsonFile) && is_readable($envDistJsonFile)) {
@@ -101,6 +110,7 @@ final class EnvJson
             }
 
             try {
+                /** @var mixed $decodedDist */
                 $decodedDist = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
                 if (! is_array($decodedDist)) {
                     throw new InvalidEnvJsonFormatException("Invalid JSON format in env.dist file: {$envDistJsonFile}. Expected array.");
@@ -126,6 +136,7 @@ final class EnvJson
         foreach ($json as $key => $val) {
             // Ensure value is scalar before putting env (key is guaranteed string)
             if ($key[1] !== '$' && is_scalar($val)) { // @codeCoverageIgnore - This condition's branches are hard to test reliably due to getenv/putenv timing issues.
+                /** @var string $stringValue */
                 $stringValue = (string) $val;
                 putenv("{$key}={$stringValue}");
             }
@@ -135,35 +146,39 @@ final class EnvJson
     /**
      * Collects environment variables based on schema properties.
      * This replaces the Env class approach with direct getenv() calls.
+     *
+     * @param array<string, mixed> $schema
+     *
+     * @return array<string, string>
      */
-    private function collectEnvFromSchema(stdClass $schema): stdClass
+    private function collectEnvFromSchema(array $schema): array
     {
-        $data = new stdClass();
+        /** @var array<string, string> $data */
+        $data = [];
 
-        // If schema has no properties defined, or properties is not an object, return empty object
-        if (! isset($schema->properties) || ! is_object($schema->properties)) {
+        // If schema has no properties defined, or properties is not an array, return empty array
+        if (! isset($schema['properties']) || ! is_array($schema['properties'])) {
             return $data;
         }
 
-        // Get object properties as an associative array
-        $properties = get_object_vars($schema->properties);
+        /** @var array<string, mixed> $properties */
+        $properties = $schema['properties'];
 
         // Get each property from the environment using getenv()
-        /** @var mixed $property */ // Keep $property for potential future use if needed, but mark as mixed
-        foreach ($properties as $key => $property) {
-            unset($property); // Explicitly unset if not used
-            // Removed unnecessary @var string $key
+        foreach (array_keys($properties) as $key) {
+            /** @var string|false $value */
             $value = getenv($key);
             if ($value !== false) {
-                // Dynamically set property on stdClass
-                $data->{$key} = $value;
+                // Add to associative array
+                $data[$key] = $value;
             }
         }
 
-        return $data; // Always returns stdClass
+        return $data;
     }
 
-    public function getSchema(string $dir): stdClass
+    /** @return array<string, mixed> */
+    public function getSchema(string $dir): array
     {
         // Always look for 'env.schema.json', regardless of the $envJson filename
         $schemaJsonFile = sprintf('%s/env.schema.json', $dir);
@@ -171,7 +186,8 @@ final class EnvJson
         return $this->fileGetJsonObject($schemaJsonFile);
     }
 
-    private function fileGetJsonObject(string $file): stdClass
+    /** @return array<string, mixed> */
+    private function fileGetJsonObject(string $file): array
     {
         if (! is_readable($file)) {
             throw new InvalidJsonFileException($file);
@@ -181,12 +197,20 @@ final class EnvJson
             throw new InvalidJsonFileException($file);
         }
 
+        /** @var string $contents */
         $contents = (string) file_get_contents($file);
-        $stdObject = json_decode($contents);
-        if (! $stdObject instanceof stdClass) {
-            throw new InvalidJsonContentException(sprintf('Error decoding JSON from file %s: %s', $file, json_last_error_msg()));
+        try {
+            /** @var mixed $decoded */
+            $decoded = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new InvalidJsonContentException(sprintf('Error decoding JSON from file %s: %s', $file, $e->getMessage()), 0, $e);
         }
 
-        return $stdObject;
+        if (! is_array($decoded)) {
+            throw new InvalidJsonContentException(sprintf('JSON in file %s is not an object/array.', $file));
+        }
+
+        /** @var array<string, mixed> $decoded */
+        return $decoded;
     }
 }
