@@ -321,4 +321,38 @@ class EnvJsonTest extends TestCase
             }
         }
     }
+
+    public function testFileGetJsonObjectInvalidJsonContent(): void
+    {
+        $testDir = __DIR__ . '/Fake/invalid-json-content-test-' . uniqid();
+        $invalidJsonFile = $testDir . '/invalid.json';
+
+        // Create directory
+        if (! is_dir($testDir)) {
+            mkdir($testDir, 0777, true);
+        }
+
+        // Create an invalid JSON file (e.g., trailing comma)
+        file_put_contents($invalidJsonFile, '{"foo": "bar",}');
+
+        $this->expectException(InvalidJsonContentException::class);
+        $this->expectExceptionMessageMatches('/Error decoding JSON from file/');
+
+        try {
+            $envJson = new EnvJson();
+            $method = new ReflectionMethod(EnvJson::class, 'fileGetJsonObject');
+            $method->setAccessible(true);
+            // Call the private method with the invalid JSON file
+            $method->invoke($envJson, $invalidJsonFile);
+        } finally {
+            // Clean up
+            if (file_exists($invalidJsonFile)) {
+                unlink($invalidJsonFile);
+            }
+
+            if (is_dir($testDir)) {
+                rmdir($testDir);
+            }
+        }
+    }
 }
