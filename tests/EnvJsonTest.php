@@ -355,4 +355,36 @@ class EnvJsonTest extends TestCase
             }
         }
     }
+
+    public function testPutEnvSkipsDollarPrefixedKeys(): void
+    {
+        $envJson = new EnvJson();
+        $method = new ReflectionMethod(EnvJson::class, 'putEnv');
+        $method->setAccessible(true);
+
+        $testData = [
+            'NORMAL_KEY' => 'normal_value',
+            '$schema' => './env.schema.json', // Key starting with $
+            'ANOTHER_KEY' => 'another_value',
+        ];
+
+        // Clear potential existing env vars
+        putenv('NORMAL_KEY');
+        putenv('$schema');
+        putenv('ANOTHER_KEY');
+
+        // Call putEnv with the test data
+        $method->invoke($envJson, $testData);
+
+        // Assert that normal keys were set
+        $this->assertSame('normal_value', getenv('NORMAL_KEY'));
+        $this->assertSame('another_value', getenv('ANOTHER_KEY'));
+
+        // Assert that the key starting with '$' was NOT set
+        $this->assertFalse(getenv('$schema'), 'Key starting with $ should not be set by putEnv');
+
+        // Clean up env vars set by the test
+        putenv('NORMAL_KEY');
+        putenv('ANOTHER_KEY');
+    }
 }

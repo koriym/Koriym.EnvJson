@@ -25,6 +25,7 @@ use function json_decode;
 use function putenv;
 use function sprintf;
 use function str_replace;
+use function str_starts_with;
 
 use const JSON_THROW_ON_ERROR;
 
@@ -133,7 +134,8 @@ final class EnvJson
     {
         foreach ($json as $key => $val) {
             // Ensure value is scalar before putting env (key is guaranteed string)
-            if ($key[1] !== '$' && is_scalar($val)) { // @codeCoverageIgnore - This condition's branches are hard to test reliably due to getenv/putenv timing issues.
+            // Skip keys starting with '$' (like '$schema')
+            if (! str_starts_with($key, '$') && is_scalar($val)) { // @codeCoverageIgnore - This condition's branches are hard to test reliably due to getenv/putenv timing issues.
                 /** @var string $stringValue */
                 $stringValue = (string) $val;
                 putenv("{$key}={$stringValue}");
