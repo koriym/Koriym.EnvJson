@@ -45,8 +45,7 @@ final class EnvJson
     {
         $schema = $this->getSchema($dir);
 
-        $pureEnvArray = $this->collectEnvFromSchema($schema);
-        $pureEnvObject = (object) $pureEnvArray; // Assign cast to variable
+        $pureEnvObject = $this->collectEnvFromSchema($schema);
         $this->validator->validate($pureEnvObject, $schema);
         $isEnvValid = $this->validator->isValid();
 
@@ -57,8 +56,7 @@ final class EnvJson
 
         $fileEnv = $this->getEnv($dir, $json);
         $this->putEnv($fileEnv);
-        $pureEnvByFileArray = $this->collectEnvFromSchema($schema);
-        $pureEnvByFileObject = (object) $pureEnvByFileArray; // Assign cast to variable
+        $pureEnvByFileObject = $this->collectEnvFromSchema($schema);
         $this->validator->validate($pureEnvByFileObject, $schema);
 
         $isPureEnvByFileValid = $this->validator->isValid();
@@ -149,16 +147,17 @@ final class EnvJson
      *
      * @param array<string, mixed> $schema
      *
-     * @return array<string, string>
+     * @psalm-suppress MoreSpecificReturnType
+     * @psalm-suppress LessSpecificReturnStatement
      */
-    private function collectEnvFromSchema(array $schema): array
+    private function collectEnvFromSchema(array $schema): stdClass
     {
         /** @var array<string, string> $data */
         $data = [];
 
         // If schema has no properties defined, or properties is not an array, return empty array
         if (! isset($schema['properties']) || ! is_array($schema['properties'])) {
-            return $data;
+            return new stdClass();
         }
 
         /** @var array<string, mixed> $properties */
@@ -174,7 +173,7 @@ final class EnvJson
             }
         }
 
-        return $data;
+        return (object) $data;
     }
 
     /** @return array<string, mixed> */
