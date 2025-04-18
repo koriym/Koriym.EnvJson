@@ -42,6 +42,20 @@ final class EnvJson
         $this->validator = new Validator();
     }
 
+    /**
+     * Loads environment variables and validates them against the schema
+     *
+     * 1. First collects existing environment variables based on schema and validates them
+     * 2. If validation fails, loads environment variables from the specified JSON file
+     * 3. If still invalid, either throws an exception or returns an empty object
+     *
+     * @param string $dir  Directory path where the environment JSON file is located
+     * @param string $json Name of the environment JSON file (default: env.json)
+     *
+     * @return stdClass Validated environment variables as an object
+     *
+     * @throws InvalidEnvJsonException If environment variables do not conform to the schema.
+     */
     public function load(string $dir, string $json = 'env.json'): stdClass
     {
         $schema = $this->getSchema($dir);
@@ -76,7 +90,22 @@ final class EnvJson
         throw new InvalidEnvJsonException($this->validator);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Reads env.json and env.dist.json files from the specified directory
+     * and returns an associative array of environment variables
+     *
+     * If both env.json and env.dist.json exist, settings from env.json take
+     * precedence, but missing keys are completed from env.dist.json
+     *
+     * @param string $dir      Directory path where environment JSON files are located
+     * @param string $jsonName Environment JSON filename
+     *
+     * @return array<string, mixed> Associative array of environment variables
+     *
+     * @throws InvalidJsonFileException If file cannot be read.
+     * @throws InvalidEnvJsonFormatException If JSON format is invalid.
+     * @throws InvalidJsonContentException If JSON syntax is invalid.
+     */
     private function getEnv(string $dir, string $jsonName): array
     {
         $envJsonFile = sprintf('%s/%s', $dir, $jsonName);
@@ -129,7 +158,14 @@ final class EnvJson
         return $envData;
     }
 
-    /** @param array<string, mixed> $json */
+    /**
+     * Sets environment variables from an associative array
+     *
+     * Only scalar values are set as environment variables, and keys starting with '$'
+     * are ignored (such as '$schema' and other metadata keys)
+     *
+     * @param array<string, mixed> $json Associative array to set as environment variables
+     */
     private function putEnv(array $json): void
     {
         foreach ($json as $key => $val) {
@@ -144,10 +180,14 @@ final class EnvJson
     }
 
     /**
-     * Collects environment variables based on schema properties.
-     * This replaces the Env class approach with direct getenv() calls.
+     * Collects environment variables based on schema properties
      *
-     * @param array<string, mixed> $schema
+     * Retrieves environment variables that match property names defined
+     * in the schema using getenv() and returns them as an object
+     *
+     * @param array<string, mixed> $schema Environment schema definition
+     *
+     * @return stdClass Object containing collected environment variables
      *
      * @psalm-suppress MoreSpecificReturnType
      * @psalm-suppress LessSpecificReturnStatement
@@ -178,7 +218,18 @@ final class EnvJson
         return (object) $data;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Loads JSON schema from the specified directory
+     *
+     * Always looks for a file named 'env.schema.json' (regardless of the $envJson filename)
+     *
+     * @param string $dir Directory path where the schema file is located
+     *
+     * @return array<string, mixed> Associative array of the loaded JSON schema
+     *
+     * @throws InvalidJsonFileException If schema file cannot be read.
+     * @throws InvalidJsonContentException If schema JSON syntax is invalid.
+     */
     public function getSchema(string $dir): array
     {
         // Always look for 'env.schema.json', regardless of the $envJson filename
@@ -187,7 +238,19 @@ final class EnvJson
         return $this->fileGetJsonObject($schemaJsonFile);
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Reads a JSON object from the specified file
+     *
+     * Performs file existence check, directory check, and JSON syntax validation
+     * to return a valid JSON object
+     *
+     * @param string $file Path to the JSON file to read
+     *
+     * @return array<string, mixed> Associative array of the loaded JSON object
+     *
+     * @throws InvalidJsonFileException If file cannot be read or is a directory.
+     * @throws InvalidJsonContentException If JSON syntax is invalid or not an array/object.
+     */
     private function fileGetJsonObject(string $file): array
     {
         if (! is_readable($file)) {
