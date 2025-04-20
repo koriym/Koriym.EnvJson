@@ -21,6 +21,12 @@ use const JSON_UNESCAPED_SLASHES;
 use const PHP_EOL;
 
 /**
+ * Class for converting INI files to JSON and JSON schema
+ *
+ * This class reads an INI file and generates JSON data with its corresponding JSON schema.
+ * The generated JSON data includes a schema reference, and the schema is automatically
+ * generated based on the keys in the INI file.
+ *
  * @psalm-type SchemaObjectType = array{'$schema': string, type: string, required: list<string>, properties: stdClass}
  * @psalm-type DataSchemaType = array{'$schema': string, ...}
  */
@@ -30,8 +36,8 @@ final class IniJson
     public string $schema;
 
     /**
-     * @throws InvalidIniFileException
-     * @throws JsonException
+     * @throws InvalidIniFileException When the INI file cannot be parsed or does not exist.
+     * @throws JsonException When JSON encoding fails.
      */
     public function __construct(string $iniFile)
     {
