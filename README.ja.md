@@ -4,16 +4,15 @@
 
 [English](./README.md)
 
-`.env`ファイルの代わりにJSONを使って環境変数を設定します。
-[JSON schema](https://json-schema.org/)によるバリデーションにより、環境変数の型安全性を確保します。
+`.env`ファイルの代わりにJSONを使用し、[JSONスキーマ](https://json-schema.org/)による組み込みバリデーション機能を備えた、環境変数への現代的なアプローチです。
 
 ## 特徴
 
-- **型安全な環境変数**: JSON schemaによる検証機能
-- **充実したドキュメント**: スキーマによる説明と制約条件の定義
-- **変換ツール**: `.env`からJSONフォーマットへの移行ツール
-- **CLIユーティリティ**: シェル連携と様々な出力形式に対応
-- **フォールバック機能**: 開発環境向けのデフォルト値設定
+- **JSONスキーマバリデーション**による型安全な環境変数
+- **スキーマの説明と制約**を通じたより良いドキュメント化
+- **変換ツール**で`.env`からJSON形式への移行をサポート
+- **CLIユーティリティ**でシェル統合と様々な出力形式に対応
+- **フォールバック機能**で開発環境をサポート
 
 ## インストール
 
@@ -21,10 +20,10 @@
 composer require koriym/env-json
 ```
 
-## 基本的な使い方
+## 基本的な使用方法
 
 ```php
-// 環境変数の読み込みとバリデーション
+// 環境変数を読み込んでバリデーション
 $env = (new EnvJson())->load(__DIR__);
 
 // オブジェクトプロパティとしてアクセス
@@ -38,7 +37,7 @@ echo getenv('DATABASE_URL');
 
 ### JSONスキーマ (env.schema.json)
 
-型、説明、制約条件付きで環境変数を定義します:
+型、説明、制約とともに環境変数を定義します：
 
 ```json
 {
@@ -49,73 +48,139 @@ echo getenv('DATABASE_URL');
     ],
     "properties": {
         "DATABASE_URL": {
-            "description": "データベース接続文字列",
-            "type": "string",
+            "description": "データベースの接続文字列",
             "pattern": "^mysql://.*"
         },
         "API_KEY": {
-            "description": "外部APIの認証キー",
-            "type": "string",
+            "description": "外部API用の認証キー",
             "minLength": 32
         },
         "DEBUG_MODE": {
-            "description": "デバッグ出力を有効にする",
-            "type": "boolean",
-            "default": false
+            "description": "デバッグ出力を有効にする (true/false)",
+            "enum": ["true", "false"],
+            "default": "false"
+        },
+        "PORT": {
+            "description": "サーバーのポート番号",
+            "pattern": "^[0-9]+$",
+            "default": "3000"
         }
     }
 }
 ```
 
-### 環境ファイル (env.json / env.dist.json)
+### 環境ファイル (env.json)
 
-実際の設定値:
+実際の設定値：
 
 ```json
 {
     "$schema": "./env.schema.json",
     "DATABASE_URL": "mysql://user:pass@localhost/mydb",
     "API_KEY": "1234567890abcdef1234567890abcdef",
-    "DEBUG_MODE": true
+    "DEBUG_MODE": "true",
+    "PORT": "8080"
 }
 ```
 
-## 運用フローとベストプラクティス
+## 重要：環境変数の型制約について
+
+**環境変数は常に文字列として扱われます。** JSONスキーマを定義する際は、この点を考慮してください：
+
+### ❌ よくある間違い
+
+```json
+{
+    "DEBUG_MODE": {
+        "type": "boolean",
+        "default": false
+    },
+    "PORT": {
+        "type": "number",
+        "default": 3000
+    }
+}
+```
+
+### ✅ 正しいアプローチ
+
+```json
+{
+    "DEBUG_MODE": {
+        "description": "デバッグ出力を有効にする (true/false)",
+        "enum": ["true", "false"],
+        "default": "false"
+    },
+    "PORT": {
+        "description": "サーバーのポート番号",
+        "pattern": "^[0-9]+$",
+        "default": "3000"
+    }
+}
+```
+
+### 推奨パターン
+
+**Boolean値の場合：**
+```json
+"FEATURE_ENABLED": {
+    "enum": ["true", "false"],
+    "default": "false"
+}
+```
+
+**数値の場合：**
+```json
+"TIMEOUT": {
+    "pattern": "^[0-9]+$",
+    "default": "30"
+}
+```
+
+**列挙値の場合：**
+```json
+"LOG_LEVEL": {
+    "enum": ["debug", "info", "warning", "error"],
+    "default": "info"
+}
+```
+
+## ワークフロー & ベストプラクティス
 
 ### 開発環境
 
-1. **スキーマ作成**: すべての必要な変数、型、制約を`env.schema.json`で定義
-2. **デフォルト値**: チーム内で共有可能なデフォルト値を`env.dist.json`に定義（gitリポジトリにコミット可能）
-3. **ローカルオーバーライド**: 個人環境固有の値を`env.json`に定義（`.gitignore`に追加）
+1. **スキーマ作成**: 必要な変数、パターン、制約をすべて含む`env.schema.json`を定義
+2. **デフォルト値**: チームで共有できるデフォルト/サンプル値を含む`env.dist.json`を作成
+3. **ローカルオーバーライド**: 特定のローカル値を含む`env.json`を作成（`.gitignore`に追加）
 4. **読み込みプロセス**:
-    - EnvJsonはまず既存の環境変数を検証
-    - 検証に失敗した場合、`env.json`を読み込み
-    - `env.json`が存在しない場合、`env.dist.json`にフォールバック
+   - EnvJsonは最初に既存の環境変数をバリデーションしようとします
+   - バリデーションが失敗した場合、存在すれば`env.json`を読み込みます
+   - `env.json`が見つからない場合、`env.dist.json`にフォールバックします
 
 ### 本番環境
 
 1. **CI/CD設定**:
-    - デプロイ時に`env.dist.json`を削除（本番では不要）
-    - `env.json`は含めない（`.gitignore`に追加済み）
-2. **設定**: すべての環境変数を本番環境に直接設定
-3. **検証**: EnvJsonがすべての必須変数が存在し有効であることを検証
+   - デプロイ時に`env.dist.json`を削除（本番では不要）
+   - `env.json`を含めない（`.gitignore`に含めるべき）
+2. **設定**: すべての環境変数を本番環境で直接設定
+3. **バリデーション**: EnvJsonは必要な変数がすべて存在し、有効であることを検証
 
 ## .envからの変換
 
-既存の`.env`ファイルをJSON形式に変換:
+既存の`.env`ファイルをJSON形式に変換：
 
 ```bash
 bin/ini2json .env
 ```
 
-これにより`env.schema.json`と`env.dist.json`の両方が生成されます。
+これにより`env.schema.json`と`env.dist.json`の両方のファイルが生成されます。
 
 ## コマンドラインツール: envjson
 
-`envjson`コマンドラインツールは様々な環境との連携をサポートします:
+`envjson`コマンドラインツールは、様々な環境との統合を支援します：
 
 ```bash
-# 現在のシェルに変数を読み込む
+# 現在のシェルに変数を読み込み
 source <(bin/envjson)
 
 # カスタムディレクトリを指定
@@ -134,26 +199,26 @@ bin/envjson -d ./config -o shell > env.sh
 ### オプション
 
 ```
-  -d --dir=DIR     envファイルを含むディレクトリ（デフォルト: カレントディレクトリ）
-  -f --file=FILE   読み込むJSONファイル名（デフォルト: env.json）
-  -o --output=FMT  出力形式: shell, fpm, ini（デフォルト: shell）
-  -v --verbose     詳細メッセージを表示
-  -q --quiet       警告メッセージを抑制
+  -d --dir=DIR     環境ファイルを含むディレクトリ（デフォルト：現在のディレクトリ）
+  -f --file=FILE   読み込むJSONファイル名（デフォルト：env.json）
+  -o --output=FMT  出力形式：shell、fpm、ini（デフォルト：shell）
+  -v --verbose     詳細なメッセージを表示
+  -q --quiet       すべての警告メッセージを抑制
   -h --help        ヘルプメッセージを表示
 ```
 
-## なぜ.envではなくJSONか？
+## なぜ.envではなくJSONなのか？
 
-- **型安全性**: アプリケーション起動前に型や制約条件を検証
-- **豊富なドキュメント**: スキーマに説明、例、制約を直接追加可能
-- **IDE対応**: エディタでのJSONスキーマバリデーションによる優れたツーリング
-- **制約**: JsonSchemaの制約適用
+- **型安全性**: アプリケーション開始前に型と制約をバリデーション
+- **豊富なドキュメント**: スキーマに直接説明、例、制約を追加
+- **IDE サポート**: エディタでのJSONスキーマバリデーションによる優れたツールサポート
+- **制約データ**: バリデーション用のJSONスキーマの制約機能
 
-## Story
+## ストーリー
 
-<img src="https://koriym.github.io/Koriym.EnvJson/images/story/ja4.jpg" width="500px" alt="env.json story">
+<img src="https://koriym.github.io/Koriym.EnvJson/images/story/en1.jpg" width="500px" alt="env.json story">
 
-## Link
+## リンク
 
 - [GitHub](https://github.com/koriym/Koriym.EnvJson)
 - [Packagist](https://packagist.org/packages/koriym/env-json)

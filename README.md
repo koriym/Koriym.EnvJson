@@ -42,28 +42,31 @@ Define your environment variables with types, descriptions, and constraints:
 
 ```json
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "required": [
-        "DATABASE_URL", "API_KEY"
-    ],
-    "properties": {
-        "DATABASE_URL": {
-            "description": "Connection string for the database",
-            "type": "string",
-            "pattern": "^mysql://.*"
-        },
-        "API_KEY": {
-            "description": "Authentication key for external API",
-            "type": "string",
-            "minLength": 32
-        },
-        "DEBUG_MODE": {
-            "description": "Enable debug output",
-            "type": "boolean",
-            "default": false
-        }
-    }
+   "$schema": "http://json-schema.org/draft-07/schema#",
+   "type": "object",
+   "required": [
+      "DATABASE_URL", "API_KEY"
+   ],
+   "properties": {
+      "DATABASE_URL": {
+         "description": "Connection string for the database",
+         "pattern": "^mysql://.*"
+      },
+      "API_KEY": {
+         "description": "Authentication key for external API",
+         "minLength": 32
+      },
+      "DEBUG_MODE": {
+         "description": "Enable debug output (true/false)",
+         "enum": ["true", "false"],
+         "default": "false"
+      },
+      "PORT": {
+         "description": "Server port number",
+         "pattern": "^[0-9]+$",
+         "default": "3000"
+      }
+   }
 }
 ```
 
@@ -76,28 +79,90 @@ Your actual configuration values:
     "$schema": "./env.schema.json",
     "DATABASE_URL": "mysql://user:pass@localhost/mydb",
     "API_KEY": "1234567890abcdef1234567890abcdef",
-    "DEBUG_MODE": true
+    "DEBUG_MODE": "true",
+    "PORT": "8080"
 }
 ```
 
+## Important: Environment Variable Type Constraints
+
+**Environment variables are always treated as strings.** When defining your JSON schema, keep this in mind:
+
+### ❌ Common Mistakes
+
+```json
+{
+    "DEBUG_MODE": {
+        "type": "boolean",
+        "default": false
+    },
+    "PORT": {
+        "type": "number",
+        "default": 3000
+    }
+}
+```
+
+### ✅ Correct Approach
+
+```json
+{
+    "DEBUG_MODE": {
+        "description": "Enable debug output (true/false)",
+        "enum": ["true", "false"],
+        "default": "false"
+    },
+    "PORT": {
+        "description": "Server port number",
+        "pattern": "^[0-9]+$",
+        "default": "3000"
+    }
+}
+```
+
+### Recommended Patterns
+
+**Boolean values:**
+```json
+"FEATURE_ENABLED": {
+    "enum": ["true", "false"],
+    "default": "false"
+}
+```
+
+**Numeric values:**
+```json
+"TIMEOUT": {
+    "pattern": "^[0-9]+$",
+    "default": "30"
+}
+```
+
+**Enum values:**
+```json
+"LOG_LEVEL": {
+    "enum": ["debug", "info", "warning", "error"],
+    "default": "info"
+}
+```
 
 ## Workflow & Best Practices
 
 ### Development Environment
 
-1. **Schema creation**: Define `env.schema.json` with all required variables, types, and constraints
+1. **Schema creation**: Define `env.schema.json` with all required variables, patterns, and constraints
 2. **Default values**: Create `env.dist.json` with default/sample values that can be shared with the team
 3. **Local overrides**: Create `env.json` with your specific local values (add to `.gitignore`)
 4. **Loading process**:
-    - EnvJson first tries to validate existing environment variables
-    - If validation fails, it loads `env.json` if present
-    - If `env.json` is not found, it falls back to `env.dist.json`
+   - EnvJson first tries to validate existing environment variables
+   - If validation fails, it loads `env.json` if present
+   - If `env.json` is not found, it falls back to `env.dist.json`
 
 ### Production Environment
 
 1. **CI/CD setup**:
-    - Remove `env.dist.json` during deployment (not needed in production)
-    - Do not include `env.json` (should be in `.gitignore`)
+   - Remove `env.dist.json` during deployment (not needed in production)
+   - Do not include `env.json` (should be in `.gitignore`)
 2. **Configuration**: Set all environment variables directly in your production environment
 3. **Validation**: EnvJson validates that all required variables are present and valid
 
