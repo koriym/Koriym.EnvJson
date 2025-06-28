@@ -41,31 +41,31 @@ echo getenv('DATABASE_URL');
 
 ```json
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "required": [
-        "DATABASE_URL", "API_KEY"
-    ],
-    "properties": {
-        "DATABASE_URL": {
-            "description": "データベースの接続文字列",
-            "pattern": "^mysql://.*"
-        },
-        "API_KEY": {
-            "description": "外部API用の認証キー",
-            "minLength": 32
-        },
-        "DEBUG_MODE": {
-            "description": "デバッグ出力を有効にする (true/false)",
-            "enum": ["true", "false"],
-            "default": "false"
-        },
-        "PORT": {
-            "description": "サーバーのポート番号",
-            "pattern": "^[0-9]+$",
-            "default": "3000"
-        }
-    }
+   "$schema": "http://json-schema.org/draft-07/schema#",
+   "type": "object",
+   "required": [
+      "DATABASE_URL", "API_KEY"
+   ],
+   "properties": {
+      "DATABASE_URL": {
+         "description": "データベースの接続文字列",
+         "pattern": "^mysql://.*"
+      },
+      "API_KEY": {
+         "description": "外部API用の認証キー",
+         "minLength": 32
+      },
+      "DEBUG_MODE": {
+         "description": "デバッグ出力を有効にする (true/false)",
+         "enum": ["true", "false"],
+         "default": "false"
+      },
+      "PORT": {
+         "description": "サーバーのポート番号",
+         "pattern": "^[0-9]+$",
+         "default": "3000"
+      }
+   }
 }
 ```
 
@@ -75,19 +75,21 @@ echo getenv('DATABASE_URL');
 
 ```json
 {
-    "$schema": "./env.schema.json",
-    "DATABASE_URL": "mysql://user:pass@localhost/mydb",
-    "API_KEY": "1234567890abcdef1234567890abcdef",
-    "DEBUG_MODE": "true",
-    "PORT": "8080"
+   "$schema": "./env.schema.json",
+   "DATABASE_URL": "mysql://user:pass@localhost/mydb",
+   "API_KEY": "1234567890abcdef1234567890abcdef",
+   "DEBUG_MODE": "true",
+   "PORT": "8080"
 }
 ```
 
-## 重要：環境変数の型制約について
+## ⚠️ 重要：環境変数の型制約について
 
-**環境変数は常に文字列として扱われます。** JSONスキーマを定義する際は、この点を考慮してください：
+**環境変数は常に文字列として扱われます。** JSONスキーマで文字列以外の型を指定すると、バリデーションエラーが発生します。
 
-### ❌ よくある間違い
+> **警告**: スキーマで`"type": "boolean"`、`"type": "integer"`、または`"type": "number"`を指定すると、環境変数が数値やBoolean風の値を含んでいても常に文字列であるため、EnvJsonはバリデーションエラーを発生させます。
+
+### ❌ これらはバリデーションエラーを引き起こします
 
 ```json
 {
@@ -96,11 +98,17 @@ echo getenv('DATABASE_URL');
         "default": false
     },
     "PORT": {
-        "type": "number",
+        "type": "integer",
         "default": 3000
+    },
+    "TIMEOUT": {
+        "type": "number",
+        "default": 30.5
     }
 }
 ```
+
+**エラーメッセージ**: 値は文字列（例：`"3000"`）になりますが、スキーマは整数を期待するため、バリデーションが失敗します。
 
 ### ✅ 正しいアプローチ
 

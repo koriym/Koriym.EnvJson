@@ -84,11 +84,13 @@ Your actual configuration values:
 }
 ```
 
-## Important: Environment Variable Type Constraints
+## ⚠️ Critical: Environment Variable Type Constraints
 
-**Environment variables are always treated as strings.** When defining your JSON schema, keep this in mind:
+**Environment variables are always treated as strings.** Using non-string types in your JSON schema will cause validation errors.
 
-### ❌ Common Mistakes
+> **Warning**: If you specify `"type": "boolean"`, `"type": "integer"`, or `"type": "number"` in your schema, EnvJson will throw validation errors because environment variables are always strings, even when they contain numeric or boolean-like values.
+
+### ❌ These Will Cause Validation Errors
 
 ```json
 {
@@ -97,11 +99,17 @@ Your actual configuration values:
         "default": false
     },
     "PORT": {
-        "type": "number",
+        "type": "integer",
         "default": 3000
+    },
+    "TIMEOUT": {
+        "type": "number",
+        "default": 30.5
     }
 }
 ```
+
+**Error message**: The value will be a string (e.g., `"3000"`), but the schema expects an integer, causing validation to fail.
 
 ### ✅ Correct Approach
 
