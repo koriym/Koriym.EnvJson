@@ -101,6 +101,7 @@ php demo/env-json-1/run.php     # Basic usage
 php demo/convert/run.php         # Convert .env to JSON
 php demo/error-handling/run.php  # Error handling examples
 php demo/validation/run.php      # Schema validation examples
+php demo/envjson-cli/run.php     # CLI tool usage examples
 ```
 
 ## Links
