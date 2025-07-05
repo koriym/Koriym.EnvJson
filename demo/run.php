@@ -31,4 +31,8 @@ echo "7. Schema Validation Demo" . PHP_EOL;
 passthru('php ' . __DIR__ . '/validation/run.php');
 echo PHP_EOL;
 
+echo "8. CLI Tool Demo - bin/envjson command usage" . PHP_EOL;
+passthru('php ' . __DIR__ . '/envjson-cli/run.php');
+echo PHP_EOL;
+
 echo "=== All demos completed! ===" . PHP_EOL;

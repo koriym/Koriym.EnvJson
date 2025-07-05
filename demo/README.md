@@ -13,6 +13,7 @@ The demo consists of multiple examples that demonstrate different aspects of the
 - `ini-json/` - Direct usage of IniJson class for INI to JSON conversion
 - `error-handling/` - Error handling examples for invalid files and formats
 - `validation/` - JSON schema validation examples and common validation errors
+- `envjson-cli/` - Command line tool usage examples
 
 ## Running the Demo
 
@@ -43,6 +44,9 @@ php demo/error-handling/run.php
 
 # Schema validation examples
 php demo/validation/run.php
+
+# CLI tool usage examples  
+php demo/envjson-cli/run.php
 ```
 
 ## Demo Details
@@ -70,3 +74,9 @@ Shows JSON schema validation in action with examples of:
 - Valid configuration that passes validation
 - Invalid configurations that fail validation
 - Common validation errors and how to fix them
+
+### envjson-cli/ (NEW)
+Demonstrates the bin/envjson command line tool:
+- Different output formats (shell, PHP-FPM, INI)
+- Command line options and usage examples
+- Integration with shell environments
