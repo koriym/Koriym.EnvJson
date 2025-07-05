@@ -9,7 +9,7 @@ A modern approach to environment variables using JSON instead of `.env` files, w
 
 ## Features
 
-- **Type-safe environment variables** with JSON schema validation
+- **Validated environment variables** with JSON schema validation
 - **Better documentation** through schema descriptions and constraints
 - **Conversion tools** to migrate from `.env` to JSON format
 - **CLI utilities** for shell integration and different output formats
@@ -42,31 +42,31 @@ Define your environment variables with types, descriptions, and constraints:
 
 ```json
 {
-   "$schema": "http://json-schema.org/draft-07/schema#",
-   "type": "object",
-   "required": [
-      "DATABASE_URL", "API_KEY"
-   ],
-   "properties": {
-      "DATABASE_URL": {
-         "description": "Connection string for the database",
-         "pattern": "^mysql://.*"
-      },
-      "API_KEY": {
-         "description": "Authentication key for external API",
-         "minLength": 32
-      },
-      "DEBUG_MODE": {
-         "description": "Enable debug output (true/false)",
-         "enum": ["true", "false"],
-         "default": "false"
-      },
-      "PORT": {
-         "description": "Server port number",
-         "pattern": "^[0-9]+$",
-         "default": "3000"
-      }
-   }
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "DATABASE_URL", "API_KEY"
+    ],
+    "properties": {
+        "DATABASE_URL": {
+            "description": "Connection string for the database",
+            "pattern": "^mysql://.*"
+        },
+        "API_KEY": {
+            "description": "Authentication key for external API",
+            "minLength": 32
+        },
+        "DEBUG_MODE": {
+            "description": "Enable debug output (true/false)",
+            "enum": ["true", "false"],
+            "default": "false"
+        },
+        "PORT": {
+            "description": "Server port number",
+            "pattern": "^[0-9]+$",
+            "default": "3000"
+        }
+    }
 }
 ```
 
@@ -86,9 +86,7 @@ Your actual configuration values:
 
 ## ⚠️ Critical: Environment Variable Type Constraints
 
-**Environment variables are always treated as strings.** Using non-string types in your JSON schema will cause validation errors.
-
-> **Warning**: If you specify `"type": "boolean"`, `"type": "integer"`, or `"type": "number"` in your schema, EnvJson will throw validation errors because environment variables are always strings, even when they contain numeric or boolean-like values.
+Environment variables are always treated as strings. Using non-string types in your JSON schema will cause validation errors.
 
 ### ❌ These Will Cause Validation Errors
 
@@ -109,7 +107,7 @@ Your actual configuration values:
 }
 ```
 
-**Error message**: The value will be a string (e.g., `"3000"`), but the schema expects an integer, causing validation to fail.
+**Error message**: The value will be a string (e.g., "3000"), but the schema expects an integer, causing validation to fail.
 
 ### ✅ Correct Approach
 
@@ -124,6 +122,11 @@ Your actual configuration values:
         "description": "Server port number",
         "pattern": "^[0-9]+$",
         "default": "3000"
+    },
+    "TIMEOUT": {
+        "description": "Timeout in seconds",
+        "pattern": "^[0-9]+(\\.[0-9]+)?$",
+        "default": "30.5"
     }
 }
 ```
@@ -162,15 +165,15 @@ Your actual configuration values:
 2. **Default values**: Create `env.dist.json` with default/sample values that can be shared with the team
 3. **Local overrides**: Create `env.json` with your specific local values (add to `.gitignore`)
 4. **Loading process**:
-   - EnvJson first tries to validate existing environment variables
-   - If validation fails, it loads `env.json` if present
-   - If `env.json` is not found, it falls back to `env.dist.json`
+    - EnvJson first tries to validate existing environment variables
+    - If validation fails, it loads `env.json` if present
+    - If `env.json` is not found, it falls back to `env.dist.json`
 
 ### Production Environment
 
 1. **CI/CD setup**:
-   - Remove `env.dist.json` during deployment (not needed in production)
-   - Do not include `env.json` (should be in `.gitignore`)
+    - Remove `env.dist.json` during deployment (not needed in production)
+    - Do not include `env.json` (should be in `.gitignore`)
 2. **Configuration**: Set all environment variables directly in your production environment
 3. **Validation**: EnvJson validates that all required variables are present and valid
 
@@ -218,14 +221,10 @@ bin/envjson -d ./config -o shell > env.sh
 
 ## Why JSON instead of .env?
 
-- **Type Safety**: Validate types and constraints before your application starts
-- **Rich Documentation**: Add descriptions, examples, and constraints directly in your schema
+- **Validation**: Validate types and constraints before your application starts
+- **Better documentation** through schema descriptions and constraints
 - **IDE Support**: Better tooling with JSON schema validation in editors
-- **Constrained Data**: Json Schema's constrains for validation
-
-## Story
-
-<img src="https://koriym.github.io/Koriym.EnvJson/images/story/en1.jpg" width="500px" alt="env.json story">
+- **Constrained Data**: Json Schema's constraints for validation
 
 ## Link
 
