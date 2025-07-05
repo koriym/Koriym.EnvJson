@@ -1,0 +1,8 @@
+{
+    "$schema": "./env.schema.json",
+    "DATABASE_URL": "postgresql://user:pass@localhost/mydb",
+    "API_KEY": "short_key",
+    "DEBUG_MODE": "maybe",
+    "PORT": "not_a_number"
+}
+
