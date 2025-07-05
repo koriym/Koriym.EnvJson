@@ -274,15 +274,15 @@ class EnvJsonTest extends TestCase
 
         // Create env.json
         $envContent = json_encode([
-            'FOO' => 'env-value',
-            'BAR' => 'env-value-only',
+            'FOO' => 'env-value-override',
+            'BAZ' => 'env-value-new',
         ]);
         file_put_contents($envFile, $envContent);
 
         // Create env.dist.json (overwrites FOO, adds BAZ)
         $envDistContent = json_encode([
-            'FOO' => 'dist-value-override',
-            'BAZ' => 'dist-value-new',
+            'FOO' => 'dist-value',
+            'BAR' => 'dist-value-only',
         ]);
         file_put_contents($envDistFile, $envDistContent);
 
@@ -297,11 +297,11 @@ class EnvJsonTest extends TestCase
             $this->assertInstanceOf(stdClass::class, $loadedEnv);
             // Check merged values
             $this->assertObjectHasProperty('FOO', $loadedEnv);
-            $this->assertSame('dist-value-override', $loadedEnv->FOO, 'Value from env.dist.json should override env.json');
+            $this->assertSame('env-value-override', $loadedEnv->FOO, 'Value from env.json should override env.dist.json');
             $this->assertObjectHasProperty('BAR', $loadedEnv);
-            $this->assertSame('env-value-only', $loadedEnv->BAR, 'Value only in env.json should persist');
+            $this->assertSame('dist-value-only', $loadedEnv->BAR, 'Value only in env.dist.json should persist');
             $this->assertObjectHasProperty('BAZ', $loadedEnv);
-            $this->assertSame('dist-value-new', $loadedEnv->BAZ, 'Value only in env.dist.json should be added');
+            $this->assertSame('env-value-new', $loadedEnv->BAZ, 'Value only in env.json should be added');
         } finally {
             // Clean up
             if (file_exists($envFile)) {
